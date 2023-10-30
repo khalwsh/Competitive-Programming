@@ -1,0 +1,58 @@
+void dfs(int node,vector<bool>&vis,vector<int>adj[],stack<int>&ft)
+{
+    vis[node]=true;
+    for(auto &val:adj[node])
+    {
+        if(!vis[val])
+            dfs(val,vis,adj,ft);
+    }
+    ft.push(node);
+}
+void dfs2(int node,vector<bool>&vis,vector<int>adj[],vector<int>&component)
+{
+    vis[node]=true;
+    component.emplace_back(node);
+    for(auto &val:adj[node])
+    {
+        if(!vis[val])
+            dfs2(val,vis,adj,component);
+    }
+}
+int kosaraju(int n, vector<vector<int>>& adjlist)
+{
+    //code here
+    vector<int>adj[n];
+    vector<int>reverse_adj[n];
+    vector<vector<int>>edges;
+    for(int i=0;i<n;i++)
+    {
+        for(auto &val:adjlist[i])
+        {
+            edges.emplace_back(vector<int>{i,val});
+        }
+    }
+    for(auto &val:edges)
+    {
+        adj[val[0]].emplace_back(val[1]);
+        reverse_adj[val[1]].emplace_back(val[0]);
+    }
+    vector<bool>vis(n,false);
+    stack<int>finshing_time;
+    for(int i=0;i<n;i++)
+    {
+        if(!vis[i])
+            dfs(i,vis,adj,finshing_time);
+    }
+    vector<vector<int>>comps;
+    for(int i=0;i<n;i++)vis[i]=false;
+    while(!finshing_time.empty())
+    {
+        int node=finshing_time.top();
+        finshing_time.pop();
+        if(vis[node])continue;
+        vector<int>temp;//store the scc
+        dfs2(node,vis,reverse_adj,temp);
+        comps.emplace_back(temp);
+    }
+    return comps.size();
+    }

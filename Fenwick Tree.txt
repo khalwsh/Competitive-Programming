@@ -1,0 +1,158 @@
+                                                Fenwick Tree (BIT)
+black box view: it is a prefix sum could be update in log(n) and get sum in log(n).
+
+supports two operation point update and sum of first x elements of the array.
+
+poth done in log ( n ) 
+
+basic implemntation:
+-----------------------------
+struct Bit{
+    int N=1<<18;
+    vector<int>tree;
+    void init(){
+        tree.resize(this->N);
+    }
+    void add(int pos,int value){
+        for(int i=pos+1;i<=N;i+=i&-i)tree[i-1]+=value;
+    }
+    int get(int pos) {
+        int sum = 0;
+        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
+        return sum;
+    }
+    int find(int t){
+        int st=0;
+        for(int sz=N>>1;sz;sz>>=1){
+            if(tree[st+sz-1]<t){
+                t-=tree[(st+=sz)-1];
+            }
+        }
+        return st;
+    }
+};
+
+===============================================================================================================
+===============================================================================================================
+how to implement a multiset using fenwick tree:
+the size of the tree should be a power of two.
+the elements of the multset is the indexs of the fenwick tree and the frequency of the element is it's value in
+the bit.
+how to add elements to the multiset we add to the element (as index in bit) one (bit.add(value,1))
+how to remove elements from the multiset we add to the element -one (bit.add(value,-1))
+how to count the frequency of an element (return bit.get(value)-bit.get(value-1))
+how to know the size of the bit (return bit.get(N-1)+1);
+how to return the value of an index in multiset return bit.find(index);
+---------------------
+implementation:
+---------------------
+struct Bit{
+    int N=1<<18;
+    vector<int>tree;
+    void init(){
+        tree.resize(this->N);
+    }
+    void add(int pos,int value){
+        for(int i=pos+1;i<=N;i+=i&-i)tree[i-1]+=value;
+    }
+    int get(int pos) {
+        int sum = 0;
+        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
+        return sum;
+    }
+    int find(int t){
+        int st=0;
+        for(int sz=N>>1;sz;sz>>=1){
+            if(tree[st+sz-1]<t){
+                t-=tree[(st+=sz)-1];
+            }
+        }
+        return st;
+    }
+};
+struct MultiSet{
+    Bit bit;
+    MultiSet(){
+        bit.init();
+        bit.add(0,-1);
+    }
+    void insert(int value){
+        bit.add(value,1);
+    }
+    void erase(int value){
+        bit.add(value,-1);
+    }
+    int count(int value){
+        return bit.get(value)-bit.get(value-1);
+    }
+    int size(){
+        return bit.get(bit.N-1)+1;
+    }
+    int at(int index){
+        return bit.find(index);//return the value which at index (index)
+    }
+};
+--------------------------------
+range update:
+struct BitRange{
+    //expected from user to deal with zero base
+    int N;
+    vector<int>m,c;
+    void init(int x){
+        N=x;
+        m.resize(N),c.resize(N);
+    }
+    void add(int pos,int mVal,int cVal){
+        for(++pos;pos<=N;pos+=pos&-pos){
+            m[pos-1]+=mVal;
+            c[pos-1]+=cVal;
+        }
+    }
+    int get(int pos){
+        int ret=0;
+        int x=pos;
+        for(pos++;pos;pos-=pos&-pos){
+            ret+=m[pos-1]*x+c[pos-1];
+        }
+        return ret;
+    }
+    void addRange(int l,int r,int value){
+        add(l,value,-value*(l-1));
+        add(r+1,-value,value*r);
+    }
+};
+---------------------------------
+//2D fenwick tree user interact as zero base
+struct fenwick_2D{
+    int n;
+    vector<vector<int>>tree;
+    void init(int _n){
+        this->n=_n;
+        tree.resize(n,vector<int>(n));
+    }
+    fenwick_2D(int _n=0){
+        this->n=_n;
+        tree.resize(n,vector<int>(n));
+    }
+    void update(int x,int y,int delta){
+        for(++x;x<=n;x+=x&-x){
+            for(int j=y+1;j<=n;j+=j&-j){
+                tree[x-1][j-1]+=delta;
+            }
+        }
+    }
+    int get(int x,int y){
+        int sum=0;
+        for(++x;x;x-=x&-x){
+            for(int j=y+1;j;j-=j&-j){
+
+                sum+=tree[x-1][j-1];
+            }
+        }
+        return sum;
+    }
+    int get(int x1,int y1,int x2,int y2){
+        return get(x2,y2)-get(x2,y1-1)-get(x1-1,y2)+get(x1-1,y1-1);
+    }
+};
+

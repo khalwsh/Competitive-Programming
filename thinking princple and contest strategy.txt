@@ -1,0 +1,50 @@
+* first think on paper not on pc and of course this depend on how hard the problem is in easy problem go ahead
+else think on paper make sure your idea works on the samples by tracing also focus on implementing fast.
+this save time and penalty
+
+* when ever your code doesn't work don't work around the code go and verfiy your idea and carefully know 
+the reason why you got this result don't make silly changes like substracting one from the answer so that 
+your answer match the sample.
+
+*if you don't fully understand the problem give yourself another try and read it again and give yourself
+a concert example and visualize it tracing the ouptut also try a symbolic notation cause it's more general.
+
+*don't ignore constrains always conseider the constrains like why k is always even. this helps to guess the 
+order of the Ac solutions.
+
+*try to redefine the problem with general from away from it's domain like trying to rephrase the problem 
+statement without side stories.
+
+*backward thinking is very useful if the reverse of the problem is easy go for it and from it calculate the 
+answer like seive. and P(A) = 1 - P(complement of A)
+
+*problem simplification think on a simpler problem and relate it to this problem or divide the problem to 
+ subProblems, note: simplification often are adhoc ideas,be ready to drop you assummtion upon can't move forward.
+ 
+
+*incremntal thinking assume you are in step n then if it's valid to extened the answer to n+1 then this algorithm
+is valid.
+
+*problem Domain re-interpretation.
+
+*observation finding:
+a)trace examples
+b)write brute forces code to generate all solution and notice pattern
+c)foucs on search space to calculate different states
+d)observe symatric in space
+e)redundacny (do we acullay care about all of the operation).
+f)think about propertiy of the input(DAG...)
+g)cycles form 
+h)f(x>limit)=constant , f(x<=limit)=some calculations.
+
+*if the problem is very hard and can't move think in brute force solution and how to optimize
+this make you don't stuck and not overstmate.
+
+*go throug the algorithms you know and try to match with the problem.
+
+*avoid to discard a correct solution think harder to validate.
+
+*make sure to use constrains.
+
+*check overflow.
+

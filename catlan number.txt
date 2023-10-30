@@ -1,0 +1,23 @@
+int catalan(int n){
+    //zero base,you should apply dp to this function
+    //another formula is c[n]=1/(n+1)*nCr(2*n,n)
+    //another one is c[n]=nCr(2*n,n)-nCr(2*n,n-1)
+    if(n<2)return 1;
+    int res=0;
+    for(int i=0;i<=n-1;i++){
+        res+= catalan(i)* catalan(n-i-1);
+    }
+    return res;
+    //what catalan number calculate ?
+    /*
+     * number of correct bracket sequence consists of n open and n close brackets
+     * number of full binary trees of (n+1) leaves
+     * number of ways to parenthesize n+1 factor
+     * number of triangulations of a convex polygon of n+2 vertex,triangulations: is the process of dividing the polygon into triangles with no overlap by connect it's vertex
+     * number of ways to connect 2*n points on circle to form n disjoint lines
+     * number of monotonic lattice paths from point (0,0) to point(n,n) which no path above the main diagonal from(0,0) to (n,n)
+     * number of permutation of length n which can be StackSorted
+     * the number of NonCrossing partitions of a set of n elements
+     * the number of ways to cover the ladder 1....n of n rectangles (ladder consists of n columns , where ith has height i)
+     */
+}

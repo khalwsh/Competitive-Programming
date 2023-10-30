@@ -1,0 +1,147 @@
+string convert_infix_to_postfix(string &s)
+{
+    map<char,int>mp;
+    stack<char>sk;
+    mp['+']=1;
+    mp['-']=1;
+    mp['*']=2;
+    mp['/']=2;
+    mp['^']=3;
+    string res;
+    for(auto &val:s)
+    {
+        if(isdigit(val)|| isupper(val)|| islower(val))
+        {
+            res+=val;
+        }
+        else if(sk.empty()||val=='('||!sk.empty()&&sk.top()=='(')
+        {
+            sk.push(val);
+        }
+        else if(val==')')
+        {
+            while(sk.top()!='(')
+            {
+                res+=sk.top();
+                sk.pop();
+            }
+            sk.pop();
+        }
+        else
+        {
+            while(!sk.empty()&&mp[val]<=mp[sk.top()])
+            {
+                if(val=='^'&&sk.top()=='^')
+                    break;
+                res+=sk.top();
+                sk.pop();
+            }
+            sk.push(val);
+        }
+    }
+    while(!sk.empty())
+        res+=sk.top(),sk.pop();
+    return res;
+}
+string convert_infix_to_postfix_reversed(string &s)
+{
+    map<char,int>mp;
+    stack<char>sk;
+    mp['+']=1;
+    mp['-']=1;
+    mp['*']=2;
+    mp['/']=2;
+    mp['^']=3;
+    string res;
+    for(auto &val:s)
+    {
+        if(isdigit(val)|| isupper(val)|| islower(val))
+        {
+            res+=val;
+        }
+        else if(sk.empty()||val=='('||!sk.empty()&&sk.top()=='(')
+        {
+            sk.push(val);
+        }
+        else if(val==')')
+        {
+            while(sk.top()!='(')
+            {
+                res+=sk.top();
+                sk.pop();
+            }
+            sk.pop();
+        }
+        else
+        {
+            while(!sk.empty()&&mp[val]<mp[sk.top()]||!sk.empty()&&mp[val]==mp[sk.top()]&&val=='^')
+            {
+                res+=sk.top();
+                sk.pop();
+            }
+            sk.push(val);
+        }
+    }
+    while(!sk.empty())
+        res+=sk.top(),sk.pop();
+    return res;
+}
+double convert_from_string_to_int(char &s)
+{
+    stringstream ss;
+    ss<<s;
+    double temp;
+    ss>>temp;
+    return temp;
+}
+double operation(double c,double d,char sign)
+{
+    if(sign=='^')
+        return pow(c,d);
+    else if(sign=='+')
+        return c+d;
+    else if(sign=='*')
+        return c*d;
+    else if(sign=='-')
+        return c-d;
+    else
+        return c/d;
+}
+long double evaluate_postfix(string &s)
+{
+    stack<double>numbers;
+    for(auto &val:s)
+    {
+        if(isdigit(val))
+            numbers.push((convert_from_string_to_int(val)));
+        else
+        {
+            double a=numbers.top();
+            numbers.pop();
+            double b=numbers.top();
+            numbers.pop();
+            numbers.push(operation(b,a,val));
+        }
+    }
+    return numbers.top();
+}
+string infix_to_prefix(string &s)
+{
+    string reverse_infix;
+    for(int i=(int)s.size()-1;i>=0;i--)
+    {
+        if(s[i]=='(')
+            reverse_infix+=')';
+        else if(s[i]==')')
+            reverse_infix+='(';
+        else
+            reverse_infix+=s[i];
+    }
+    string reversed_postfix= convert_infix_to_postfix_reversed(reverse_infix);
+    string prefix;
+    for(int i=(int)reversed_postfix.size()-1;i>=0;i--)
+    {
+        prefix+=reversed_postfix[i];
+    }
+    return prefix;
+}

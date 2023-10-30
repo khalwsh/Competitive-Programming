@@ -1,0 +1,109 @@
+usage: answer queries quickly
+
+how to work: partation the orginal array into sqrt blocks and prepare the answer for every block then handle queries.
+
+how to find min element in a range quries: 
+const int SQ=317;//sqrt of maxN
+int pre[SQ];//the array which i store the answer for every partation
+int sq;//ceil(sqrt(n))
+//building the datastructure
+int n;
+    cin>>n;
+    vector<int>v(n);
+    for(auto &val:v)cin>>val;
+    sq=ceil(sqrt(n));
+    for(int i=0,j=0;i<n;i+=sq,j++){
+        pre[j]=inf;
+        for(int k=0;k<sq&&k+i<n;k++){
+            pre[j]=min(pre[j],v[k+i]);
+        }
+}
+//querying 
+int query(int l,int r,vector<int>&v){
+    int lB=l/sq;
+    int rB=r/sq;
+    if(lB==rB)return *min_element(v.begin()+l,v.begin()+r+1);//same block
+    int ret=*min_element(v.begin()+l,v.begin()+(lB+1)*sq);
+    ret=min(ret,*min_element(v.begin()+rB*sq,v.begin()+r+1));
+    //handle the extra elements
+    if(lB+1==rB)return ret;//handle concectuive blocks
+    ret=min(ret,*min_element(pre+lB+1,pre+rB));//handle the blocks which are fully in range
+    return ret;
+}
+===============================================================================================================
+===============================================================================================================
+example of a problem solved using sqrt decompostion.
+
+int n,q;
+int SQ;
+vector<int>v;
+vector<int>pre;
+void build(){
+    for(int i=0,j=0;i<n;i+=SQ,j++){
+        int k;
+        for(k=0;k<SQ and k+i<n;k++){
+            pre[i+k]=v[i+k];
+        }
+        sort(pre.begin()+SQ*j,pre.begin()+SQ*j+k);
+    }
+}
+int counter(int l,int r,int x){
+    int res=0;
+    for(int i=l;i<=r;i++){
+        res+=(x>=v[i]);
+    }
+    return res;
+}
+int query(int l,int r,int x){
+    int LB=l/SQ;
+    int RB=r/SQ;
+    if(LB==RB){
+        return counter(l,r,x);
+    }
+    int res=0;
+    for(int i=l;i<(LB+1)*SQ;i++){
+        res+=(v[i]<=x);
+    }
+    for(int i=RB*SQ;i<=r;i++){
+        res+=(v[i]<=x);
+    }
+    for(int i=LB+1;i<RB;i++){
+        res+= upper_bound(pre.begin()+i*SQ,pre.begin()+i*SQ+SQ,x)-(pre.begin()+i*SQ);
+    }
+    return res;
+}
+void Modify(int pos,int x){
+    int bId=pos/SQ;
+    int bSt=bId*SQ;
+    int bEn=min(n,bSt+SQ);
+    int ind= lower_bound(pre.begin()+bSt,pre.begin()+bEn,v[pos])-pre.begin();
+    v[pos]=x;
+    pre[ind]=x;
+    sort(pre.begin()+bSt,pre.begin()+bEn);
+}
+signed main() {
+    khaled
+    cin>>n>>q;
+    SQ=(int)sqrt(n)+1;
+    v.resize(n),pre.resize(n);
+    for(auto &val:v)cin>>val;
+    build();
+    while(q--){
+        char type;
+        cin>>type;
+        if(type=='C'){
+            //count
+            int l,r,x;
+            cin>>l>>r>>x;
+            l--,r--;
+            int res=query(l,r,x);
+            cout<<res<<line;
+        }else{
+            //modify
+            int l,r;
+            cin>>l>>r;
+            l--;
+            Modify(l,r);
+        }
+    }
+}

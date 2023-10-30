@@ -1,0 +1,85 @@
+============================================= Game theory =============================================
+Nim game I:
+           you have n heaps every heap have an variable number of rocks in it you can remove any number of rocks
+form it if it is not empty and the last one to remove rock win
+
+answer:
+       take xor of all numbers of rocks if it is 0-->player one lose else player one win.
+=======================================================================================================
+=======================================================================================================
+Nim game II:
+            you have n heaps every heap have an variable number of rocks in it you can remove 1 or 2 or 3 rocks
+form it if it is not empty and the last one to remove rock win
+
+answer:
+       assume you have one heap having x rocks so 
+0 1 2 3 4 5 6 7 8 9 10
+L W W W L W W W L W W
+so if we take every number of the rocks %4 then this change nothing so the solution is:
+take every number from input %4 and solve like nim game I just like that.
+
+bonus:
+      what if you can take up to P numbers from any stack you take every number %(P+1) then you apply Nim game I
+=======================================================================================================
+=======================================================================================================
+Stair Game:
+There is a staircase consisting of n stairs, numbered 1,2,…,n. Initially, each stair has some number of balls.
+There are two players who move alternately. On each move, a player chooses a stair k where k≠1
+ and it has at least one ball. Then, the player moves any number of balls from stair k
+ to stair k−1. The player who moves last wins the game.
+Your task is to find out who wins the game when both players play optimally.
+Note that if there are no possible moves at all, the second player wins.
+
+answer:
+the even indexs stairs are useless cause if you move some balls from even stair the oppenent can make exaclty 
+the same move in the odd that less that this even so we only foucs on odd stairs so the answer is 
+like Nim game I it is the xoring of the values in odd indexs and if it's zero second win else first win.
+=======================================================================================================
+=======================================================================================================
+another game :
+There are n  heaps of coins and two players who move alternately. On each move, a player selects some of the nonempty heaps and removes one coin from each heap. The player who removes the last coin wins the game.
+
+Your task is to find out who wins if both players play optimally.
+
+answer:
+       like Nim game II we take every number with %(max i can take +1) then if there is any one left the first 
+win else the second win cause the special property that you can choose more than one heap but if this property
+doens't exist it will be excalty like Nim game I after taking the mod.
+=======================================================================================================
+=======================================================================================================
+sprague--Grundy theorem:every impartial game is equivalent to a nim heap of a certain size and this size is 
+called grundy number or Nimber so given such a game => convert to a unique number.
+grundy number : given a game that generates sub-games for every possible move the nimber of state G is equal
+to 0 for losing postion and mex({nimber(move1),nimber(move2),....,nimber(moveN)});
+mex-->function that calculate the smallest non-negative interger that isn't exist on search space.
+grundy(0)-->0
+grundy(1)-->1
+grundy(2)-->mex(grundy(1),grundy(0))-->2
+
+example:
+       given a number N move is to divide by 2,3 or 6 (taking floor) winner is last to move 
+we can calculate grundy(n) to make this game like nim so 
+int dp[N];
+int mex(unordered_set<int>&a){
+    int val=0;
+    for(auto &i:a){
+        if(a.count(val))val++;
+        else break;
+    }
+    return val;
+}
+int grundy(int n){
+    if(n<=1)return n;
+    int &ret=dp[n];
+    if(~ret)return ret;
+    unordered_set<int>sub_nimbers;
+    int moves[]{2,3,6};
+    for(int i=0;i<3;i++){
+        sub_nimbers.insert(grundy(n/moves[i]));
+    }
+    return ret=mex(sub_nimbers);
+}
+
+************************** final tip **************************
+ always consider dynamic programming when solving problems like that :)
+

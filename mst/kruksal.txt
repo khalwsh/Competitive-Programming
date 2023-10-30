@@ -1,0 +1,1 @@
+it's an algorithm that uses the datastructure disjointSet to get the mst 1)sort all edges 2)if the two sides of the edges have no common parent add this edge to mst 3)if the two sides of the edges have common parent discard this edges

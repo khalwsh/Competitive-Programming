@@ -1,0 +1,23 @@
+vector<int>dikstra(int n,vector<pair<int,int>>adj[])
+{
+    priority_queue<pair<int,int>,vector<pair<int,int>>,greater<>>pq;
+    vector<int>dist(n,INT64_MAX);
+    dist[0]=0;
+    pq.push({0,0});
+    while(!pq.empty())
+    {
+        int node=pq.top().second;
+        int cost=pq.top().first;
+        pq.pop();
+        if(dist[node]!=cost)continue;
+        for(auto &val:adj[node])
+        {
+            if(dist[val.first]>cost+val.second)
+            {
+                dist[val.first]=val.second+cost;
+                pq.push({dist[val.first],val.first});
+            }
+        }
+    }
+    return dist;
+}

@@ -1,0 +1,61 @@
+class Solution
+{
+    class dsu{
+      vector<int>siz,parent;
+      public:
+      dsu(int n)
+      {
+          siz.resize(n+1,1);
+          parent.resize(n+1);
+          for(int i=0;i<=n;i++)
+          parent[i]=i;
+      }
+      int find_parent(int child)
+      {
+          if(parent[child]==child)return child;
+          return parent[child]=find_parent(parent[child]);
+      }
+      void union_by_size(int a,int b)
+      {
+          int parent1=find_parent(a);
+          int parent2=find_parent(b);
+          if(parent1==parent2)return;
+          if(siz[parent1]>siz[parent2])
+          parent[parent2]=parent1,siz[parent1]+=siz[parent2];
+          else
+          parent[parent1]=parent2,siz[parent2]+=siz[parent1];
+      }
+      bool is_same_comp(int a,int b)
+      {
+          return find_parent(a)==find_parent(b);
+      }
+    };
+	public:
+	//Function to find sum of weights of edges of the Minimum Spanning Tree.
+    int spanningTree(int n, vector<vector<int>> mat[])
+    {
+    // code here
+//find mst 
+    dsu s(n);
+    vector<pair<int,pair<int,int>>>edges;
+    for(int i=0;i<n;i++)
+    {
+        for(auto &val:mat[i])
+         edges.emplace_back(val[1],make_pair(val[0],i));
+    }
+    int summation=0;
+    vector<pair<int,pair<int,int>>>mst;
+    sort(edges.begin(),edges.end());
+    for(auto &val:edges)
+    {
+        if(s.is_same_comp(val.second.first,val.second.second))continue;
+        mst.emplace_back(val.first,make_pair(val.second.first,val.second.second));
+        s.union_by_size(val.second.first,val.second.second);
+    }
+    for(auto &val:mst)
+    summation+=val.first;
+    return summation;
+    }
+
+
+};
