@@ -1,0 +1,21 @@
+how to use lagrange multipliers to find max or min values for multi-variables function.
+
+given F(x,y,z)= 3x^2 + y^2 - 2z^2
+and   3x + 2y - 8z = -50
+
+G(x) = 3x + 2y -8z = -50
+
+you need x , y , z , M-->landa
+
+Fx = M Gx, Fy=M Gy, Fz= M Gz.
+
+then you have 4 equations to get the value of four variables
+1) G(x) = 3x + 2y -8z = -50
+2)Fx = M Gx
+3)Fy=M Gy
+4)Fz= M Gz.
+
+to get Fx we make partial differeniate of F(x,y,z) and same with y,z and same for g when solving the 4 equation
+it gives you F(x0,y0,z0) this point either a absolute min or absolute max you can check by subsituting with 
+another point but the condition of G(x,y,z)=k must hold for the new point.
+

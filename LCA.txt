@@ -71,6 +71,23 @@ int lca(int a,int b){
     return binaryLifting[a][0];
 }
 
+
+int CalculateCommonNodesInPaths(int f, int s, int t){
+    //s is source one
+    //t is source two
+    //f is the destination
+    int ans = 0;
+    bool is1 = lca(f, s) == f, is2 = lca(f, t) == f;
+    if(is1 != is2)  return 1;
+    if(is1)
+        ans = max(ans, h[ lca(s, t) ] - h[ f ]);
+    else if(lca(f, s) != lca(f, t))
+        ans = max(ans, h[ f ] - max(h[ lca(f, s) ], h[ lca(f, t) ]));
+    else
+        ans = max(ans, h[ f ] + h[ lca(s, t) ] - 2 * h[ lca(f, t) ]);
+    return ans + 1;
+}
+
 signed main() {
     khaled
     int n;

@@ -1,0 +1,307 @@
+A trail which states ends at same vertex is called euler circuit.
+what is a trail? A walk in which no edge is depulicated (nodes could depulicated)
+what is a walk? any random traversal in graph (dfs,..)
+
+euler path conditions?
+1)start == end
+2)every edge must be used only one.
+
+Euler Graph: is a graph having Euler circuit in it and all edges in the graph must be in a single componenet,
+All other components should have at most one vertex with no edges.
+
+in Euler Graph all vertex have even degree
+
+Euler Path: is a path that writes every edge exactly once. so euler circuit is a euler path that starts and end 
+at the same vertex.
+
+Semi-Eulerian-graph conditions?
+1)every edge is enterd once
+2)start vertex != end vertex  this mean exactly 2 vertices must have odd degree (start and end vertex)
+3)all vertices with non-zero degree are connected.
+
+ALGORITHM STEPS
+
+1)connectivity check ==> check if all edges are present in only one component.
+-- find a node with degree > 0. and do dfs mark nodes can reach
+-- check all not visited nodes if at least one have degree > 0 then it's not euler graph.
+2)count odd degree nodes (use adj list)
+-- count == 0 ==> eulerian graph ---> euler cycle
+-- count == 2 ==> semi-eulerian graph ---> euler path
+-- count >= 3 ==> not eulerian graph
+
+the difference between euler path and cycle? the path start at node and end at other node the cycle same node
+
+in euler path ? every intermediate node should have even degree (start and end) are odd
+in euler cycle? every node in the graph has even degree
+
+if the graph was directed? 
+euler cycle? indgree[i] == outdegree[i] for all nodes.
+euler path? start node : indgree[i] == outdegree[i]-1 ,end node:indegree[i]=outdegree[i]+1,other in == out
+-----------------------------------------------------------------------
+Hierholzer's algorithm ( to get euler cycle)
+-find cycles and combine them.
+Steps:
+--start from whatever node v get a cycle then iterate on the cycle elements if there is any node still have
+edges go and get it's cycle and replcace the node with it's cycle.
+-------------------------------------------------------------------------
+Defenation:
+Euler path:paths which use each edge only one.
+Euler Circuit: path,that starts and ends at the same place ans uses each edge only once.
+Hamiltonian path: path which visits each vertex only once.
+Hamiltonian circuit: path,that starts and end on the same place and visit each vertex only once.
+Exists:
+Euler path:at most 2 nodes with odd vertices.
+Euler circuit: all nodes have even degrees.
+Hamiltonain path/circuit: no shortcut you must brute forces.
+-------------------------------------------------------------------------
+----- code for Euler cycle for undirected graph -----
+class UnDirectedEulerCycle{
+public:
+    int n;
+    vector<vector<int>>adj;
+    vector<int>deg;
+    vector<int>tour;
+    map<pair<int,int>,int>edges;
+    UnDirectedEulerCycle(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        deg.resize(n);
+        for(auto &val:edges){
+            this->edges[val]++;
+            pair<int,int>p=val;
+            swap(p.first,p.second);
+            this->edges[p]++;
+        }
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            adj[val.second].emplace_back(val.first);
+            deg[val.first]++,deg[val.second]++;
+        }
+    }
+    void component(int node,vector<bool>&vis){
+        vis[node]=true;
+        for(auto &val:adj[node]){
+            if(!vis[val])
+                component(val,vis);
+        }
+    }
+    bool check(){
+        vector<bool>vis(n,false);
+        for(int i=0;i<n;i++){
+            if(deg[i]){
+                component(i,vis);
+                break;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(!vis[i]&&deg[i]){
+                return false;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(deg[i]&1^1)continue;
+            return false;
+        }
+        return true;
+    }
+    void DFS(int node){
+        for(auto &val:adj[node]){
+            if(this->edges[make_pair(node,val)])
+                this->edges[make_pair(node,val)]--,this->edges[make_pair(val,node)]--,DFS(val);
+        }
+        tour.emplace_back(node);
+    }
+    void Get(){
+        map<pair<int,int>,int>TempEdges=edges;
+        int s=0;
+        for(int i=0;i<n;i++){
+            if(deg[i]){
+                s=i;
+                break;
+            }
+        }
+        DFS(s);
+        edges=TempEdges;
+        reverse(tour.begin(),tour.end());
+    }
+};
+-------------------------------------------------------------------------
+----- code for Euler path for undirected graph -----
+class UnDirectedEulerPath{
+public:
+    int n;
+    vector<vector<int>>adj;
+    vector<int>deg;
+    vector<int>tour;
+    map<pair<int,int>,int>edges;
+    int StartingNode=-1,EndingNode=-1;
+    UnDirectedEulerPath(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        deg.resize(n);
+        for(auto &val:edges){
+            this->edges[val]++;
+            pair<int,int>p=val;
+            swap(p.first,p.second);
+            this->edges[p]++;
+        }
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            adj[val.second].emplace_back(val.first);
+            deg[val.first]++,deg[val.second]++;
+        }
+    }
+    void component(int node,vector<bool>&vis){
+        vis[node]=true;
+        for(auto &val:adj[node]){
+            if(!vis[val])
+                component(val,vis);
+        }
+    }
+    bool check(){
+        vector<bool>vis(n,false);
+        for(int i=0;i<n;i++){
+            if(deg[i]){
+                component(i,vis);
+                break;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(!vis[i]&&deg[i]){
+                return false;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(deg[i]&1^1)continue;
+            else if(StartingNode==-1)StartingNode=i;
+            else if(EndingNode==-1)EndingNode=i;
+            else return false;
+        }
+        if(StartingNode==-1){
+            for(int i=0;i<n;i++){
+                if(deg[i]){
+                    StartingNode=i;
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+    void DFS(int node){
+        for(auto &val:adj[node]){
+            if(this->edges[make_pair(node,val)])
+              this->edges[make_pair(node,val)]--,this->edges[make_pair(val,node)]--,DFS(val);
+        }
+        tour.emplace_back(node);
+    }
+    void Get(){
+        map<pair<int,int>,int>TempEdges=edges;
+        DFS(StartingNode);
+        edges=TempEdges;
+        reverse(tour.begin(),tour.end());
+    }
+};
+
+-------------------------------------------------------------------------
+------ Directed Euler Path -----
+class DirectedEulerPath{
+public:
+    vector<vector<int>>adj;
+    vector<int>in,out;
+    vector<int>tour;
+    int n;
+    int s=-1,e=-1;
+    DirectedEulerPath(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        in.resize(n),out.resize(n);
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            out[val.first]++,in[val.second]++;
+        }
+    }
+    void dfs(int node){
+        while(!adj[node].empty()){
+            int x=adj[node].back();
+            adj[node].pop_back();
+            dfs(x);
+        }
+        tour.emplace_back(node);
+    }
+    bool Get(){
+        int counter1=0,counter2=0,counter3=0;
+        for(int i=0;i<n;i++){
+            if(in[i]==out[i])counter1++;
+            else if(in[i]==out[i]-1)s=i,counter2++;
+            else if(in[i]==out[i]+1)e=i,counter3++;
+            else {
+                return false;
+            }
+        }
+        if(s==-1||e==-1){
+            return false;
+        }
+        dfs(s);
+        bool all=false;
+        for(int i=0;i<n;i++){
+            all=all||adj[i].size();
+        }
+        if(!all && s==0 and e==n-1){
+            reverse(tour.begin(),tour.end());
+            return true;
+        }else
+            return false;
+    }
+};
+-------------------------------------------------------------------------
+----- Directed Euler cycle -----
+class DirectedEulerCycle{
+public:
+    vector<vector<int>>adj;
+    vector<int>in,out;
+    vector<int>tour;
+    int n;
+    int s=-1;
+    DirectedEulerCycle(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        in.resize(n),out.resize(n);
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            out[val.first]++,in[val.second]++;
+        }
+    }
+    void dfs(int node){
+        while(!adj[node].empty()){
+            int x=adj[node].back();
+            adj[node].pop_back();
+            dfs(x);
+        }
+        tour.emplace_back(node);
+    }
+    bool Get(){
+        int counter1=0;
+        for(int i=0;i<n;i++){
+            if(in[i]==out[i])counter1++;
+            else {
+                return false;
+            }
+        }
+        for(int i=0;i<n;++i){
+            if(in[i]||out[i]){
+                s=i;break;
+            }
+        }
+        dfs(s);
+        bool all=false;
+        for(int i=0;i<n;i++){
+            all=all||(int)adj[i].size();
+        }
+        if(!all){
+            reverse(tour.begin(),tour.end());
+            return true;
+        }else
+            return false;
+    }
+};
+

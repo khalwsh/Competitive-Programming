@@ -36,6 +36,7 @@ This way, we avoid unnecessary updates and save time and space. Lazy propagation
 
 To summarize, lazy propagation is a technique used in segment trees to optimize range queries and updates by delaying updates until they are actually needed. 
 ---------------------------------------------------------------
+
 Segment tree beats: it helps at some queries that normal segment tree can't hanlde like ( range %,/ )
 also range ( min for cur value and x , max for cur value and x),range sqrt,....
 

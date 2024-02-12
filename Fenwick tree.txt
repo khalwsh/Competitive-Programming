@@ -7,31 +7,25 @@ poth done in log ( n )
 
 basic implemntation:
 -----------------------------
-struct Bit{
-    int N=1<<18;
+struct Fenwick{
+    int n;
     vector<int>tree;
-    void init(){
-        tree.resize(this->N);
+    void init(int _n){
+        n=_n;
+        tree.resize(this->n);
     }
     void add(int pos,int value){
-        for(int i=pos+1;i<=N;i+=i&-i)tree[i-1]+=value;
+        for(int i=pos+1;i<=n;i+=i&-i)tree[i-1]+=value;
     }
     int get(int pos) {
         int sum = 0;
         for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
         return sum;
     }
-    int find(int t){
-        int st=0;
-        for(int sz=N>>1;sz;sz>>=1){
-            if(tree[st+sz-1]<t){
-                t-=tree[(st+=sz)-1];
-            }
-        }
-        return st;
+    int query(int l,int r){
+        return get(r)-get(l-1);//send zero base
     }
 };
-
 ===============================================================================================================
 ===============================================================================================================
 how to implement a multiset using fenwick tree:
@@ -90,6 +84,20 @@ struct MultiSet{
     }
     int at(int index){
         return bit.find(index);//return the value which at index (index)
+    }
+    int order_of_key(int key){
+        int left = 0 , right = size()-1;
+        int res = 0;
+        while(left<=right){
+            int mid = left+(right-left)/2;
+            if(at(mid)>=key){
+                res = mid;
+                right = mid-1;
+            }else{
+                left = mid+1;
+            }
+        }
+        return res;
     }
 };
 --------------------------------
