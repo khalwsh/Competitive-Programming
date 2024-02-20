@@ -1,0 +1,31 @@
+MontonicQueue:
+struct MonotonicQueue{
+    MonotonicStack add,remove;
+    void push(int value){
+        add.push(value);
+    }
+    void move(){
+        while(!add.empty()){
+            remove.push(add.top());
+            add.pop();
+        }
+    }
+    void pop(){
+        if(remove.empty())move();
+        remove.pop();
+    }
+    int top(){
+        if(remove.empty())move();
+        return remove.top();
+    }
+    int max(){
+        return std::max(remove.max(),add.max());
+    }
+    int size(){
+        return remove.size()+add.size();
+    }
+    bool empty(){
+        return !size();
+    }
+};
+
