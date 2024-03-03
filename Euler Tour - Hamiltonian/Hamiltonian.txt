@@ -1,0 +1,10 @@
+Hamiltonian path: path which visits each vertex only once.
+Hamiltonian circuit: path,that starts and end on the same place and visit each vertex only once.
+
+-NP-Hard problem 
+
+problem find all hamiltonian cycles in the graph.
+
+- graph must me connected and one compoenet
+- if there is any articulation point there is no hamiltonian 
+- visit every node only once

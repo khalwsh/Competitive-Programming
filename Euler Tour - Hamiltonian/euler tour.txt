@@ -1,0 +1,54 @@
+A trail which states ends at same vertex is called euler circuit.
+what is a trail? A walk in which no edge is depulicated (nodes could depulicated)
+what is a walk? any random traversal in graph (dfs,..)
+
+euler path conditions?
+1)start == end
+2)every edge must be used only one.
+
+Euler Graph: is a graph having Euler circuit in it and all edges in the graph must be in a single componenet,
+All other components should have at most one vertex with no edges.
+
+in Euler Graph all vertex have even degree
+
+Euler Path: is a path that writes every edge exactly once. so euler circuit is a euler path that starts and end 
+at the same vertex.
+
+Semi-Eulerian-graph conditions?
+1)every edge is enterd once
+2)start vertex != end vertex  this mean exactly 2 vertices must have odd degree (start and end vertex)
+3)all vertices with non-zero degree are connected.
+
+ALGORITHM STEPS
+
+1)connectivity check ==> check if all edges are present in only one component.
+-- find a node with degree > 0. and do dfs mark nodes can reach
+-- check all not visited nodes if at least one have degree > 0 then it's not euler graph.
+2)count odd degree nodes (use adj list)
+-- count == 0 ==> eulerian graph ---> euler cycle
+-- count == 2 ==> semi-eulerian graph ---> euler path
+-- count >= 3 ==> not eulerian graph
+
+the difference between euler path and cycle? the path start at node and end at other node the cycle same node
+
+in euler path ? every intermediate node should have even degree (start and end) are odd
+in euler cycle? every node in the graph has even degree
+
+if the graph was directed? 
+euler cycle? indgree[i] == outdegree[i] for all nodes.
+euler path? start node : indgree[i] == outdegree[i]-1 ,end node:indegree[i]=outdegree[i]+1,other in == out
+-----------------------------------------------------------------------
+Hierholzer's algorithm ( to get euler cycle)
+-find cycles and combine them.
+Steps:
+--start from whatever node v get a cycle then iterate on the cycle elements if there is any node still have
+edges go and get it's cycle and replcace the node with it's cycle.
+-------------------------------------------------------------------------
+Defenation:
+Euler path:paths which use each edge only one.
+Euler Circuit: path,that starts and ends at the same place ans uses each edge only once.
+Hamiltonian path: path which visits each vertex only once.
+Hamiltonian circuit: path,that starts and end on the same place and visit each vertex only once.
+Exists:
+Euler path:at most 2 nodes with odd vertices.
+Euler circuit: all nodes have even degrees.
