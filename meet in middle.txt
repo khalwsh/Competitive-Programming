@@ -1,0 +1,86 @@
+- this should be used if you can solve problem for twice samller k.
+
+- what the algorithm do ? 
+
+solve the problem for the half of the input and then solve to the other half
+and find a way to combine them.
+
+
+- given N <= 40 numbers ,find subset summing up to s. where a[i] <= 10 ^ 9.
+
+partation the array to 2 arrays each of size n/2 and make the brute force
+solution for every array of them then combine the answer using map to find
+quickly.
+
+
+- given a sequence a count increasing subsequeces of length 3.(i,j,k) inc
+
+brute force on j and count the number of greater elements to the right and 
+the number of smaller elements to the left and the answer is the summation
+over j to this equation : smaller_left[j] * bigger_right[j]
+
+
+- given a sequence a find 4 different values that there summation is x.
+
+lets keep a structure that hold all pairs summations behind the index i 
+start at like : -------|i -- j  the sturcture hold all pairs summation to 
+the | then brute force on i,j if x - v[i] - v[j] is in the structure then
+we find our answer.
+note this also valid for 3-SUM problem but the structure hold only the values
+before you.
+
+
+- given a number x find a string with standard polynomial hash equal to
+x % (1e9+7).
+
+standard polynomial hash: oae --> (o-'a'+!)*26 + (a-'a'+1)*26*26 + ...
+first sol:
+if we generate number of strings equal to the sqrt(mod) then we can combine
+them to get the answer so we need to generate 60000 random string and combine
+the answer.
+
+second sol: 
+brute force on all strings of length 10 and generate there hash
+using meet in middle -----|----- the first half generated 0 - 4 indexs and 
+the other half 5-9 indexs then combine the answer to make there sum = x
+
+
+- given a graph count how many path of length 5 have 5 distinct nodes.
+
+if there is repetation allowed this is dp[v][k].
+but if no repetation then you must use meet in middle by iterating on the 
+middle element and count how many paths of length 2 out of this node for 
+all nodes on the graph then the answer for every pair = s - freq[first]-
+freq[second]+freq[{first,second}]
+where s is the size of the list contain paths of length 2.
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
