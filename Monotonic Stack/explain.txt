@@ -1,0 +1,20 @@
+you need to have access to the max element using stack so use 
+
+stack of pairs the first element is the array element and the second 
+is the max so far.
+
+you initialize the stack with INT_MIN, INT_MIN and this considered as empty
+stack.
+
+when you are inserting you emplace(x,max(x,st.top().second)).
+
+when you are deleting you are poping. st.pop();
+
+when asscess the first element you return st.top().first
+
+when size return st.size()-1
+
+when max return st.top().second
+
+when empty return st.size() == 1
+

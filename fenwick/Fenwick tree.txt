@@ -1,0 +1,28 @@
+                                                Fenwick Tree (BIT)
+black box view: it is a prefix sum could be update in log(n) and get sum in log(n).
+
+supports two operation point update and sum of first x elements of the array.
+
+both done in log ( n ) 
+
+index & -index give you the value of the last set bit (12 & -12) = 4
+
+every index in fenwcik hold the summation for some range and this range
+is the from index - (index & - index) + 1 to index.
+
+12 --> hold 9,10,11,12
+8 -->  hold 1,2,3,4,5,6,7,8
+
+
+
+
+===============================================================================================================
+how to implement a multiset using fenwick tree:
+the size of the tree should be a power of two.
+the elements of the multset is the indexs of the fenwick tree and the frequency of the element is it's value in
+the bit.
+how to add elements to the multiset we add to the element (as index in bit) one (bit.add(value,1))
+how to remove elements from the multiset we add to the element -one (bit.add(value,-1))
+how to count the frequency of an element (return bit.get(value)-bit.get(value-1))
+how to know the size of the bit (return bit.get(N-1)+1);
+how to return the value of an index in multiset return bit.find(index);

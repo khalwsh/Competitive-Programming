@@ -39,4 +39,28 @@ modified find : int find(int child){ //follow acraman inverse function acraman(1
         return parent[child] = find(parent[child]);
 }
 
-improved dsu ables you to merge and find and get elements of specific set
+- improved dsu ables you to merge and find and get elements of specific set
+
+- note the dsu which doesn't have path compression has o(log(n)).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

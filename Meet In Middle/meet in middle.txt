@@ -55,9 +55,7 @@ freq[second]+freq[{first,second}]
 where s is the size of the list contain paths of length 2.
 
 
-
  
-
 
 
 

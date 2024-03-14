@@ -1,0 +1,18 @@
+you have 2 montonic stacks add,rem
+
+when push  add.push(x)
+
+when pop if(rem.empty())move();
+rem.pop();
+
+when top return if(rem.empty()move();
+return rem.top();
+
+when max return max(add.max(),rem.max())
+
+when size return add.size() + rem.size()
+
+when empty return !size()
+
+when move  while(add.size()) rem.push(add.top()) , add.pop();
+
