@@ -1,0 +1,32 @@
+square root decomposition: 
+
+Given a segment of n elements and you are asked for qureies and you can't handle it with range datastructure like segment tree so you partiation the 
+array to fixed size blocks and precompute their answer then when quering
+you consider the not compleleted part of the begining and end and for every
+complete part within range you use the precomputed answer.
+
+
+array : 1 2 3 1 13 123 32 1 31 11 12 17
+block size = 2 , query: 1 11
+
+your soltuions is: from 1 to 2 use the brute force and from 11 to 11 and
+for the rest of the range 3,4,...,10
+you use the precomputed answer for every block {3,4} , {5,6} , {7,8} , {9,10}
+
+time complexity : O(N/blocksize + blocksize) so you choose the block size in
+order to minmize this equation.
+
+---------------------------------------------------------
+important techinque:
+
+if there is a problem that require precomputation and have updates and there
+is no way to mantain updates and the structure in the same time then you can
+build the structure and have the updates alone in vector and while answering 
+the quries use the structure and use the vector and whenever the vector size
+is sqrt(n) rebuild the structure with new line added and clear the vector.
+
+---------------------------------------------------------
+important fact:
+
+if you have n elements that there summation is S then there is at most sqrt(s) disticnt values.
+

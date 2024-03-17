@@ -1,0 +1,70 @@
+what is the scc?
+
+strongly connected component a directed graph is a mximal set of vertices
+such that for every pair of vertices u are reachable from each other.
+
+Algorithms for scc?
+
+- DFS
+for each node i run dfs and mark in 2D arary eachnode j you reach
+then if reach[i][j] and reach[j][i] then same scc.
+
+- kosaraju's algorithm 
+do topological sorting on the graph and reverse the graph then do dfs calls 
+with the toposort order on the reversed graph and every component got from 
+this is scc.
+
+- Tarjan
+only 1 dfs call and compute bridges and articulation points
+
+mark DFS# Assigned number based on visiting time for node
+
+what are the LowestLink# ?
+it's min number of my ancestors nodes i reach including me.
+it's upper nodes in current dfs search tree
+
+if A is ancestor of B and B reaches A = cycle
+only 1 node will have DSF# = LowestLink#
+it mean it has no ancestor to reach.
+
+how to implement the 3 cases in a dfs?
+- if child node is unvisited?
+--- let your child find recursively its lowLink #
+--- Then simply minimize parent LowLink # with child's one
+
+- if child is visited?
+--- either in current stack (ancestor = cycle) ==> minmize
+--- or it is not in stack then ignore
+
+After computing LowLink # you can simply group each set of nodes same value
+as scc.
+or 
+Tarjan has a stack invariant to get scc
+- have a stack push node in it during search
+- before going out of dfs check if dfs# = low link#
+- if yes all nodes in stack from this node is scc
+- pop them all
+- note, in normal dfs we will pop always after dfs end.
+
+--------------------------------------------------------
+SCCs to Component Graph
+
+# of nodes = # of SCCs
+
+Edge beteween (A,B) if A,B in different scc and A can reach B
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

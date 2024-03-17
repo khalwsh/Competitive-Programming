@@ -1,4 +1,4 @@
-ex:how many unique element in given range
+//ex:how many unique element in given range
 
 int freq[1000001];
 struct query{

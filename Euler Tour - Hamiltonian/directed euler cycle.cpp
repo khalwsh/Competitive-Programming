@@ -1,4 +1,3 @@
------ Directed Euler cycle -----
 class DirectedEulerCycle{
 public:
     vector<vector<int>>adj;

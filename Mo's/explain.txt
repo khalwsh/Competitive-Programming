@@ -1,0 +1,22 @@
+order the queries in a way that you minmize the total moving.
+ex:
+
+1 4
+8 10
+5 7
+
+the best order is:
+
+1 4
+5 7
+8 10
+
+how to efficently sort?
+
+we sort based on the group with the start of the range then with in the group 
+we sort based on the end of the range
+
+why it is fast?
+with in each group starting ranges have at max distance equal to sqrt.
+and the end of ranges have in total distance n so complexity is o(n*sqrt(n))
+
