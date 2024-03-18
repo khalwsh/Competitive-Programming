@@ -2,19 +2,19 @@ what is the scc?
 
 strongly connected component a directed graph is a mximal set of vertices
 such that for every pair of vertices u are reachable from each other.
-
+--------------------------------------------------------------
 Algorithms for scc?
 
-- DFS
+- DFS [brute force approach]
 for each node i run dfs and mark in 2D arary eachnode j you reach
 then if reach[i][j] and reach[j][i] then same scc.
-
+---------------------------------
 - kosaraju's algorithm 
 do topological sorting on the graph and reverse the graph then do dfs calls 
 with the toposort order on the reversed graph and every component got from 
 this is scc.
-
-- Tarjan
+---------------------------------
+- Tarjan algorithm
 only 1 dfs call and compute bridges and articulation points
 
 mark DFS# Assigned number based on visiting time for node
@@ -45,8 +45,7 @@ Tarjan has a stack invariant to get scc
 - if yes all nodes in stack from this node is scc
 - pop them all
 - note, in normal dfs we will pop always after dfs end.
-
---------------------------------------------------------
+--------------------------------------------------------------
 SCCs to Component Graph
 
 # of nodes = # of SCCs

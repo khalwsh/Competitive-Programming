@@ -1,0 +1,16 @@
+what is a bridge ?
+it's an edge if you remove this edge it increase overall componenets of the 
+graph.
+
+bridge can't be an edge in a cycle
+-----------------------------------------------
+Bridges algorithms 
+
+- brute force approch 
+try erase ith edge and check connectivity o(m * m)
+
+- Tarjan algorithm
+use dfs# and LowLink and you minmize the LowLink with all your children apart
+from parent and after all minmization if LowLink[node] == dfn[node] then
+it's a bridge between parent of this node and this node but consider the case
+when the parent = -1 when start calling this function.
