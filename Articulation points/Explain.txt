@@ -1,0 +1,43 @@
+what is an articulation point ?
+if graph is fully connected it disconnect the graph.
+if there is a bridge there exist an articulation point but not viceverse
+---------------------------------------------
+Algorithms
+
+- DFS [brute force]
+erase the node and check if the graph is disconnected.
+
+- Tarjan
+like normal but the condition for check if node is an art point is
+      if(lowlink[val]>=dfn[node]) 
+         Art[node] = true;
+but you need to handle the root because in this case always it will be 
+counted as art point so you handle this by count how many times the node
+has unvisted childern in variable and if the node is the root and have 
+children not visited more than one only in this case the root is art point
+
+void Tarjan(int node,int parent){
+    dfn[node] = LowLink[node] = ndfn++;
+    int child = 0;
+    for(auto &val:adj[node]){
+        if(dfn[val]==-1){
+            child++;
+            Tarjan(val,node);
+            LowLink[node] = min(LowLink[node],LowLink[val]);
+            if(LowLink[val]>=dfn[node]){
+                if(parent==-1&&child<=1)continue;
+                IsArtPoints[node] = true;
+            }
+        }else if(parent!=val){
+            LowLink[node] = min(LowLink[node],dfn[val]);
+        }
+    }
+}
+------------------------------------------------
+what is biconnected graph?
+A graph with no art points. and is connected graph 
+
+Biconnected componenets(BBC): if graph has articulation points,split graph 
+to components from these points each component is called a biconnected comp
+
+A graph with N art points has N+1 biconnected components.
