@@ -1,0 +1,5 @@
+Merge sort Trees are normal segment tree but every node has a vector of elements that it contain so if
+a node has range [0,3] inside this node there is a vector has the values from index 0 to index 3 but in sorted
+way.
+
+

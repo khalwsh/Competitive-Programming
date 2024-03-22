@@ -1,5 +1,5 @@
 struct Node{
-
+//note min sum = 0
 	int MAXLEFT,MAXRIGHT,MAX,SUM;
 	Node(int a=0,int b=0,int c=0,int d=0){
 		SUM=a,MAXLEFT=b,MAXRIGHT=c,MAX=d;
