@@ -1,0 +1,17 @@
+There is a tree of size N , rooted at 0. 
+Answer Q queries:
+- given v and k find the k-th ancestor of v.
+
+---- native approcach: repeat k times: v = parent[v]    O(Q * N)
+
+---- pre processing the binary lifting table: BL[u][k]-->what is the anscestor of u when move k steps up
+formula: BL[i][0] = parent[i] , BL[i][j] = BL[BL[i][j-1]][j-1];
+
+// O (N*log(N)) space & time comlexity
+
+--loops order matter
+for(int i=0;i<n;i++)
+   BL[i][0] = parent[i];
+for(int j=1;j<log;j++)
+  for(int i=0;i<n;i++)
+     BL[i][j] = BL[BL[i][j-1]][j-1];
