@@ -1,0 +1,18 @@
+what is the lca? it's the lowest common ancestor for 2 nodes in the tree.
+
+LCA(a,b) = the lowest node that is ancestor for both a ,b 
+
+first you make both a, b at the same level by walking the deepthest node to same hieght then if a == b return it
+else:
+    you can iterate on BinaryLiftingTable from largest jump to lowest and if the jump goes to different anscestors
+    take it.
+and in the end return parent[a].
+
+this way has log(n) time complexity but we can do better with sparse tables we can make euler tour on the tree
+and for given two nodes query on range of the array and the deepest node is the lca.
+
+Euler tour: when enter node push it to array and after every edge between u,v add u to the array.
+
+Spares table help you to make range min query in O(1) so we can search about the lowest node in the range in O(1)
+and this is the order of getting LCA.
+

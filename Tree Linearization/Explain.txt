@@ -1,0 +1,27 @@
+There are alot of ways to Linearize the Tree
+
+1) Euler tour
+
+Explain:
+First thing in dfs you add the node to the array then after every call to child add it again. help with LCA.
+---------------------------------------------------------------------------
+2) Normal Linearization ,    StartTime[2*N] , EndTime[2*N] --> every node exist 2 times in the array 
+
+- sub tree range from [StartTime[node] , EndTime[node]). note the node exist twice in the range.
+- it can solve the problem in path and this have to cases:
+1) if the 2 nodes one of them is lca for both then the range is [ST[lca] , ST[other node]].
+2) if the 2 nodes have lca different from them then the range is [EN[l],ST[r]] and you should handle lca by condition
+note: if EN[l] > ST[r] swap them and every node occurs twice in the range is not on the path you are interested on
+the nodes that occurs only one time.
+
+Explain:
+you have a timer when entering the node assign the node to the LinearTree[timer] and assign starting time of the node
+with timer value then increment it and after the node finish it's dfs make the same with EndTime.
+---------------------------------------------------------------------------
+3) Linearization for subtree StartTime[N] , EndTime[N] --> every node exist one time in the array
+
+- sub tree range from [StartTime[node] , EndTime[node]). note the node exist one time in the range.
+
+Explain:
+you have a timer when entering the node assign the node to the LinearTree[timer] and assign starting time of the node
+with timer value then increment it then after the dfs finish assign finishing time [node] = timer.
