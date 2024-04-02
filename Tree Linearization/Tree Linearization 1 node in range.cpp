@@ -8,5 +8,5 @@ void Linear(int node,int par) {
         if (val == par)continue;
         Linear(val, node);
     }
-    EN[node] = Timer;
+    EN[node] = Timer - 1;
 }
