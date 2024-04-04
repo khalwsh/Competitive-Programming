@@ -43,18 +43,50 @@ modified find : int find(int child){ //follow acraman inverse function acraman(1
 
 - note the dsu which doesn't have path compression has o(log(n)).
 
+--------------------------------------------------------------------------------------------------------
+                                       weighted Union Find
 
 
+problem:
 
+you have N variables x1,x2,x3,... and Q queries in form of:
 
+1 a b c  ---> add to your knowledge base that Xa - Xb = c and check
+if it's consistent with the KB.
 
+2 a b    ---> what is the value of Xa - Xb 
 
+Ex:
+	1 2 3 5   --> reply ok
+	1 3 5 2   --> reply ok
+	1 2 4 3   --> reply ok
+	1 2 5 8   --> reply in consistent and ignore it
+        1 2 5 7   --> reply ok
+	2 5 4     --> find X5 - X4
 
+We gonna represent Xa - Xb = c by a -----> b and cost is c
 
+ans the answer is the summation of edges between the 2 nodes and note if
+the Edge in path is in my direction then it's postive else negative.
 
+note: Xa - Xb = C is same as Xb - Xa = -C
 
+Find(x) --> return pair < parent , cost to reach parent > 
 
+Union(a,b,c) --> merge leaders with cost equal cost a to parent - cost b to parent - C
 
+- you can apply path compression
+--------------------------------------------------------------------------------------------------------
+                                       Rollback Dsu
+
+- Don't use path Compression 
+- use stack to save the difference happen to parent array.
+- the difference between the 2 arrays is the x,parent[x] , y,size[y]
+
+--------------------------------------------------------------------------------------------------------
+                                       Dsu on trees
+can solve:
+- find distinct values in the subtree
 
 
 
