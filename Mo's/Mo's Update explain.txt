@@ -1,0 +1,27 @@
+every query have 3 items:
+- query start 
+- query end
+- query time --> index in input
+
+
+we will change how to sort:
+
+previous ---> small block first in case of tie smallest EndBlock first
+
+now ---> small block size first then smallest EndBlock then smallest time
+
+
+
+you have two arrays one for queries that contain [ST,EN,TIME]
+TIME: number of updates happen before you.
+
+the second array is the updates queries each have [prev,updated] values
+
+
+
+-how algorithm work?
+you have instead of 4 while loops to adjust the range of query you gonna
+have 6 while 2 for time ,2 for start , 2 for end.
+the Time Whiles if inserting --> change prev to new else reverse.
+
+ 

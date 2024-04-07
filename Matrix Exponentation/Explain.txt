@@ -1,0 +1,69 @@
+MATRIX EXPONENTIATION
+
+Prerequisites:
+- binary exponentiation
+- iterative dp  --> you transform the tranisation to Mat expo for optimize
+- Fibonacci sequence
+-------------------------------------------------------
+notes:
+- if you can solve it with O(1) space with dp so we can use matrix expo.
+- give weights for every variable like
+      new_a = 0 * a + 1 * b
+      new_b = 1 * a + 0 * b
+then the matrix is {{0,1},{1,0}}
+
+
+-------------------------------------------------------
+1- RANDOM MOOD
+
+bob can be either happy or sad. his mood switches with probability p every
+minute. if he's happy right now, what is the probability that he's happy 
+after N minutes?
+
+you can use simple dp--> dp[i][j]: in the ith second and jth mood
+dp[i][j] = dp[i-1][j](1 - p) + dp[i-1][j ^ 1] * p
+
+but this solution solve for n <= 1e7
+
+using binary exponentiation you can solve it in log time
+
+P1 is known so P2 = P1 * (1 - P1) + (1 - P1) * P1
+
+P4 = P2 * (1 - P2) + (1 - P2) * P2
+-------------------------------------------------------
+2- STRING MOOD
+bob can be either happy or sad. His mood changes when reading a vowel and
+he become sad if reading 'S','D' and happy if reading 'H' else his mood 
+doesn't change.
+how many strings of length n that Ending up making him happy ?
+
+int a[2][2]; N = 2
+int b[2][2]; N = 4
+
+a[0][0] is the number of 2-letter strings that move happy to happy
+a[0][1] is the number of 2-letter strings that move happy to sad
+a[1][0] is the number of 2-letter strings that move sad to happy
+a[1][1] is the number of 2-letter strings that move sad to sad
+
+b[0][0] is the number of 4-letter strings that move happy to happy
+b[0][1] is the number of 4-letter strings that move happy to sad
+b[1][0] is the number of 4-letter strings that move sad to happy
+b[1][1] is the number of 4-letter strings that move sad to sad
+
+How to combine them to have c[2][2] where it represent N = 6
+
+c[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0]
+c[0][1] = ....
+
+c[i][k] += a[i][j] * b[j][k] 
+
+if you are happy there is a 19 way to stay happy
+if you are happy there is a 7 way to become sad
+if you are sad there is a 6 way to be happy 
+if you are sad there is a 20 way to stay sad
+
+so a = {{19,7},{6,20}} is the matrix and answer is 
+
+a ^ n [0][0]
+-------------------------------------------------------
+
