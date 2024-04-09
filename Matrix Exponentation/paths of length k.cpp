@@ -97,35 +97,21 @@ matrix SumPowers(matrix &a , int _n) {
         return SumPowers(a, _n / 2) * (Identity(a.siz) + FastPower(a, _n / 2));
     }
 }
-matrix FastSumPowers(matrix &a,int k){
-    int _n = a.siz;
-    matrix res(2 * _n);
-    for(int i=0;i<_n;i++){
-        for(int j=0;j<_n;j++){
-            res.mat[i][j] = a.mat[i][j];
-        }
+int n,m,k;
+signed main() {
+    khaled
+    cin>>n>>m>>k;
+    matrix res(n);
+    for(int i=0;i<m;i++){
+        int a,b;cin>>a>>b;
+        a--,b--;
+        res.mat[a][b] = 1;
     }
-    for(int i=_n;i<2*_n;i++){
-        for(int j = 0;j<_n;j++){
-            res.mat[i][j] = a.mat[i-_n][j];
-        }
-    }
-    for(int i=_n;i<2*_n;i++){
-        for(int j=0;j<_n;j++){
-            res.mat[i][j] = 0;
-        }
-    }
-    for(int i=_n;i<2*_n;i++){
-        for(int j=_n;j<2*_n;j++){
-            res.mat[i][j] = 0;
-            if(i==j)res.mat[i][j] = 1;
-        }
-    }
+    int sum = 0;
     res = FastPower(res,k);
-    for(int i=_n;i<2 * _n;i++){
-        for(int j=0;j<_n;j++){
-            a.mat[i - _n][j] = res.mat[i][j];
-        }
+    for(int i=0;i<n;i++){
+        sum += accumulate(res.mat[i].begin(),res.mat[i].end(),0ll);
+        sum %= mod;
     }
-    return a;
+    cout<<sum % mod<<line;
 }

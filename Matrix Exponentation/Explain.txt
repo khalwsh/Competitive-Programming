@@ -66,4 +66,52 @@ so a = {{19,7},{6,20}} is the matrix and answer is
 
 a ^ n [0][0]
 -------------------------------------------------------
+The General Approach
+- when ever we have initial state S0
+- And we move to nxt state using basic sum/multiply operation
+
+- Try to define initial state in square matrix: S0
+- Try to define the basic operations in transition matrix: T
+
+- such that: S0 * T = S1
+- Then to move to nth state: S0 * T ^ (n - d - 1)
+where d is the matrix diemnsion
+
+
+Constructing Matrices
+- This is the tough part. We learn it by experience
+- Typically matrices are square.
+- If Terms are only summed and multiplied by constatns this is easy
+- if F(i) depends on last k terms, try first matrix k * k
+- Focus with First row,each element expresses an F(i)
+- Initialize it with the base cases
+- Construct transition to move them
+-------------------------------------------------------
+Imaginary sequence:
+F[0] = 1 , F[1] = 3 , F[2] = 4
+F[n] = 2 * F[n-3] + F[n-2] - 4 * F[n-1]
+
+then the iniial matrix:
+[1 3 4]
+[0 0 0]
+[0 0 0]
+
+and we need to make a transation matrix that when multiplied with inital
+do this:
+[3 4 X]
+[0 0 0]
+[0 0 0]
+
+so we need to make new matrix 
+[0 0 2]
+[1 0 1]
+[0 1 -4]
+
+to make the shifts and the last colomn have the weights
+-------------------------------------------------------
+Powers of Adjacency Matrix
+- if we have binary adjacency matrix of a graph, what powering it means?
+if matrix is powered to k then:
+  - each cell(i,j) = the number of paths of length exactly k from node i to
+    node j. Cell(i,i) is for cycles.
 
