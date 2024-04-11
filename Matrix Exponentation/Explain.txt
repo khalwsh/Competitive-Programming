@@ -114,4 +114,27 @@ Powers of Adjacency Matrix
 if matrix is powered to k then:
   - each cell(i,j) = the number of paths of length exactly k from node i to
     node j. Cell(i,i) is for cycles.
+--------------------------------------------------------
+if you want to get the number of paths in the graph up to k 
+
+- from every vertex add an edge to a fake vertex N + 1 , also add an edge
+between N + 1 , N + 1
+
+every path of length x in the initial graph corresponds to a path of length
+x + 1, x + 2, .... ending at Vertex N + 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

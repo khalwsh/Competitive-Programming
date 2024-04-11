@@ -2,24 +2,17 @@ struct matrix {
     int siz;
     vector<vector<int>>mat;
     matrix(int _siz) {
-        mat.resize(_siz,vector<int>(_siz));
+        mat.resize(_siz,vector<int>(_siz,inf));
         siz = _siz;
-        for (int i = 0; i < siz; i++) {
-            for (int j = 0; j < siz; j++) {
-                mat[i][j] = 0;
-            }
-        }
     }
 
     matrix operator*(const matrix &b) {
         matrix c(siz);
         for (int i = 0; i < siz; i++) {
             for (int j = 0; j < siz; j++) {
-                c.mat[i][j] = 0;
                 for (int k = 0; k < siz; k++) {
-                    c.mat[i][j] += mul(mat[i][k] , b.mat[k][j],mod);
+                    c.mat[i][k] =min(c.mat[i][k],mat[i][j] + b.mat[j][k]);
                 }
-                c.mat[i][j] %= mod;
             }
         }
         return c;
@@ -59,7 +52,8 @@ matrix ZeroMatrix(int siz) {
     return res;
 }
 matrix FastPower(matrix a, int power) {
-    matrix res = Identity(a.siz);
+    matrix res(a.siz);
+    for(int i=0;i<res.siz;i++)res.mat[i][i] = 0;
     while (power > 0) {
         if (power & 1) {
             res = res * a;
@@ -96,4 +90,54 @@ matrix SumPowers(matrix &a , int _n) {
     } else {
         return SumPowers(a, _n / 2) * (Identity(a.siz) + FastPower(a, _n / 2));
     }
+}
+matrix FastSumPowers(matrix &a,int k){
+    int _n = a.siz;
+    matrix res(2 * _n);
+    for(int i=0;i<_n;i++){
+        for(int j=0;j<_n;j++){
+            res.mat[i][j] = a.mat[i][j];
+        }
+    }
+    for(int i=_n;i<2*_n;i++){
+        for(int j = 0;j<_n;j++){
+            res.mat[i][j] = a.mat[i-_n][j];
+        }
+    }
+    for(int i=_n;i<2*_n;i++){
+        for(int j=0;j<_n;j++){
+            res.mat[i][j] = 0;
+        }
+    }
+    for(int i=_n;i<2*_n;i++){
+        for(int j=_n;j<2*_n;j++){
+            res.mat[i][j] = 0;
+            if(i==j)res.mat[i][j] = 1;
+        }
+    }
+    res = FastPower(res,k);
+    for(int i=_n;i<2 * _n;i++){
+        for(int j=0;j<_n;j++){
+            a.mat[i - _n][j] = res.mat[i][j];
+        }
+    }
+    return a;
+}
+int MnPath(){
+    int n,m,k;
+    cin>>n>>m>>k;
+    matrix M(n);
+    for(int i=0;i<m;i++){
+        int a,b,c;cin>>a>>b>>c;
+        a--,b--;
+        M.mat[a][b] = c;
+    }
+    M = FastPower(M , k);
+    int mn = inf;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            mn = min(M.mat[i][j],mn);
+        }
+    }
+    return (mn >= inf / 2 ? inf : mn);
 }
