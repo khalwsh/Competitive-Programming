@@ -122,19 +122,13 @@ between N + 1 , N + 1
 
 every path of length x in the initial graph corresponds to a path of length
 x + 1, x + 2, .... ending at Vertex N + 1.
+--------------------------------------------------------
+how to get the Nth term of linear recurrence relation in o(log(n))
 
+F[n] = C[i] * F[n-i] : 1 <= i <= k
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+To solve this we construct 2 matrices k * k
+- base matrix which have the first colomn in it as the base case
+[x00]
+[y00]----> this is an example of sequence starts with x,y,z F[n] depend on 
+[z00]      last 3 values of the recurrence
