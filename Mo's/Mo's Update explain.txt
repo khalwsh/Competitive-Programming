@@ -24,4 +24,3 @@ you have instead of 4 while loops to adjust the range of query you gonna
 have 6 while 2 for time ,2 for start , 2 for end.
 the Time Whiles if inserting --> change prev to new else reverse.
 
- 
