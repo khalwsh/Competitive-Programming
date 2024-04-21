@@ -1,7 +1,7 @@
 int A[N],n,comp[2 * N],ans[N];
 int Freq[2 * N],old[2 * N],New[2 * N];
-int upIdx[N],sum;
-int st,en,tim,BlockSize,CompSize,q,nq;
+int upIdx[N];
+int st,en,tim,BlockSize,CompSize,q,nq,cnt = 0;
 int qs[N],qe[N],qi[N],qt[N];
 void compress() {
     sort(comp, comp + CompSize);
@@ -15,12 +15,10 @@ void compress() {
     }
 }
 void Add(int CompressedValue) {
-    if (!Freq[CompressedValue]++)
-        sum += comp[CompressedValue];
+    
 }
 void Erase(int CompressedValue) {
-    if (!--Freq[CompressedValue])
-        sum -= comp[CompressedValue];
+    
 }
 void update(int qId) {
     while (tim < qt[qId]) {
@@ -55,28 +53,26 @@ void update(int qId) {
 signed main() {
     khaled
     cin >> n;
+    cin >> q;
     for (int i = 0; i < n; i++) {
         cin >> A[i];
         comp[i] = A[i];
     }
     CompSize = n;
-    cin >> q;
     for (int i = 0; i < q; i++) {
         char ch;
         cin >> ch;
         int x, y;
         cin >> x >> y;
-        if (ch == 'Q') {
-            //Query
-            qs[nq] = --x;
-            qe[nq] = --y;
+        if (ch == '2') {
+            qs[nq] = x;
+            qe[nq] = y;
             qi[nq] = nq;
             qt[nq] = tim;
             nq++;
         } else {
-            //update
             tim++;
-            old[tim] = A[--x];
+            old[tim] = A[x];
             New[tim] = y;
             upIdx[tim] = x;
             A[x] = y;
@@ -95,7 +91,7 @@ signed main() {
     });
     for(int i=0;i<nq;i++){
         update(qi[i]);
-        ans[qi[i]] = sum;
+        ans[qi[i]] = cnt;
     }
     for(int i=0;i<nq;i++){
         cout<<ans[i]<<line;
