@@ -9,7 +9,7 @@
 using namespace __gnu_pbds; // for ordered set
 using namespace std; // global name space
 using namespace tr2; // for dynamic_bitset<>
-#define int long long
+//#define int long long
 //#define double long double
 #define line '\n'
 typedef long long ll;
