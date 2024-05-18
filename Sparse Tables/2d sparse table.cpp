@@ -1,7 +1,16 @@
 const int M = 1e3 + 1;
-int f[10][10][M][M];
+const int LOG = 10;
+int f[LOG][LOG][M][M];
 int grid[M][M];
 int n, m;
+/*
+ 2d sparse table f[log(n)][log(m)][N][M] --> take m * n * log(n) * log(m) memory and time and o(1) for quering
+ it can be used for min , max , gcd , lcm , and , or ,... any non mutable function
+ it support no updates.
+ note it written like that to be cache friendly don't change the dimesions order.
+ if your problem have N = 5000 change the LOG make it 13 
+ if your problem have N * M <= 1e6 then you have to use vectors instead of arrays but avoid that as possible
+*/
 int combine(int a, int b){
     return max(a , b);
 }
@@ -11,8 +20,8 @@ void build() {
             f[0][0][i][j] = grid[i][j];
         }
     }
-    for (int k1 = 0; k1 < 10; k1++) {
-        for (int k2 = 0; k2 < 10; k2++) {
+    for (int k1 = 0; k1 < LOG; k1++) {
+        for (int k2 = 0; k2 < LOG; k2++) {
             if (k1 == 0 && k2 == 0) continue;
             for (int i = 0; i + (1 << k1) <= n; i++) {
                 for (int j = 0; j + (1 << k2) <= m; j++) {
