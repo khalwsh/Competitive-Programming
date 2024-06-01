@@ -99,7 +99,24 @@ public:
         scc.add_edge(2 * i + (f ? 0 : 1), 2 * j + (g ? 1 : 0));
         scc.add_edge(2 * j + (g ? 0 : 1), 2 * i + (f ? 1 : 0));
     }
-
+    void Xor(int a, int b){
+        add_clause(a , true , b , true);
+        add_clause(a , false , b , false);
+    }
+    void Imply(int a, int b){
+        add_clause(a , false , b , true);
+    }
+    void BiImply(int a, int b){
+        Imply(a , b);
+        Imply(b , a);
+    }
+    void ForceTrue(int a){
+        add_clause(a , true , a , true);
+    }
+    void ForceFalse(int a){
+        add_clause(a , false ,a , false);
+    }
+    
     bool satisfiable() {
         auto id = scc.scc_ids().second;
         for (int i = 0; i < _n; i++) {
@@ -108,15 +125,11 @@ public:
         }
         return true;
     }
-
+    
     std::vector<bool> answer() { return _answer; }
 
 private:
     int _n;
     std::vector<bool> _answer;
     scc_graph scc;
-    // to force variable x to true add !x imply x
-    // to force variable y to false add x imply !x
-    // to force two variables to be different from each other p ^ q -- > (P || Q) && (!P || !Q)
-    // to force two variables to be same P bidirectional imply Q -- > (!P || Q) && (P || !Q)
 };
