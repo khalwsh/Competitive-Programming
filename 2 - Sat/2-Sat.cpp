@@ -91,30 +91,28 @@ public:
 
     explicit two_sat(int n) : _n(n), _answer(n), scc(2 * n) {}
 
-    void add_clause(int i, bool f, int j, bool g) {
-        // f is true represent i else !i
-        // g is true represent j else !j
+    void OR(int i, bool f, int j, bool g) {
         assert(0 <= i && i < _n);
         assert(0 <= j && j < _n);
         scc.add_edge(2 * i + (f ? 0 : 1), 2 * j + (g ? 1 : 0));
         scc.add_edge(2 * j + (g ? 0 : 1), 2 * i + (f ? 1 : 0));
     }
     void Xor(int a, int b){
-        add_clause(a , true , b , true);
-        add_clause(a , false , b , false);
+        OR(a , true , b , true);
+        OR(a , false , b , false);
     }
     void Imply(int a, int b){
-        add_clause(a , false , b , true);
+        OR(a , false , b , true);
     }
     void BiImply(int a, int b){
         Imply(a , b);
         Imply(b , a);
     }
     void ForceTrue(int a){
-        add_clause(a , true , a , true);
+        OR(a , true , a , true);
     }
     void ForceFalse(int a){
-        add_clause(a , false ,a , false);
+        OR(a , false ,a , false);
     }
     
     bool satisfiable() {
