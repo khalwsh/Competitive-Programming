@@ -18,52 +18,48 @@ struct KMP {
         }
     }
 
-    vector<int> pattern(const string &s, const string &t) {
-        build(t);
+    static vector<int> pattern(const string &s, const string &t) {
+    	KMP temp;
+        temp.build(t);
         int n = (int) s.size(), m = (int) t.size(), k = 0;
         vector<int> pos;
         for (int i = 0; i < n; i++) {
             while (k > 0 && s[i] != t[k]) {
-                k = failure[k - 1];
+                k = temp.failure[k - 1];
             }
             if (s[i] == t[k])k++;
             if (k == m) {
                 pos.emplace_back(i - m + 1);
-                k = failure[k - 1];
+                k = temp.failure[k - 1];
             }
         }
         return pos;
     }
 
-    static int LongestPalndromeSuffix(const string &s) {
+    static pair<int , string> LongestPalndromeSuffix(const string &s) {
         KMP temp;
         string rev = s;
         reverse(rev.begin(), rev.end());
         string x = rev + '@' + s;
         temp.build(x);
-        return temp.failure[x.size() - 1];
+        int res = temp.failure[x.size() - 1];
+   		string t = s.substr(0 , s.size() - res);
+   		reverse(t.begin() , t.end());
+   		string res2 = s + t;
+   		return make_pair(res , res2);
     }
 
-    static int LongestPalndromePrefix(const string &s) {
+    static pair<int,string> LongestPalndromePrefix(const string &s) {
         KMP temp;
         string rev = s;
         reverse(rev.begin(), rev.end());
         string x = s + '@' + rev;
         temp.build(x);
-        return temp.failure[x.size() - 1];
-    }
-
-    static int AddBackToBePalndrome(const string &s) {
-        return (int) s.size() - LongestPalndromeSuffix(s);
-    }
-
-    static int AddFrontToBePalndrome(const string &s) {
-        return (int) s.size() - LongestPalndromePrefix(s);
-    }
-
-    static int AddAnyToBePalndrome(const string &s) {
-        // given a string you can add either to the back or front what's the min no of chars to add to make it palndrome
-        return (int) s.size() - max(LongestPalndromePrefix(s), LongestPalndromeSuffix(s));
+        int res = temp.failure[x.size() - 1];
+    	string t = s.substr(res) ;
+    	reverse(t.begin() , t.end());
+   		string res1 = t + s;
+   		return make_pair(res , res1);
     }
 
     static int MinUnit(const string &s) {

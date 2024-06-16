@@ -1,4 +1,4 @@
-int inv[N] , FInv[N] , fact[N];
+ll inv[N] , FInv[N] , fact[N];
 void Inverse() {
     inv[0] = inv[1] = 1;
     for (int i = 2; i < N; i++)
@@ -16,7 +16,7 @@ void factorial() {
     }
 }
 int Ncr(int n, int r) {
-    int ans = ((fact[n] * FInv[r])
+    ll ans = ((fact[n] * FInv[r])
                % mod * FInv[n - r])
               % mod;
     return ans;
