@@ -98,14 +98,14 @@ struct KMP {
         return count(temp.begin() , temp.end() , 1);
     }
     static int UniqueSubStrings(const string &s){
-        string temp = s;
-        reverse(temp.begin() , temp.end());
         string cur;
         int n = (int)s.size();
         int res = 0;
-        for(int i = n - 1;i>=0;i--){
-            cur += temp[i];
-            res += CountUniquePrefixes(cur);
+        for(int i = 0;i<n;i++){
+            cur += s[i];
+            string tt = cur;
+            reverse(tt.begin() , tt.end());
+            res += CountUniquePrefixes(tt);
         }
         return res;
     }
