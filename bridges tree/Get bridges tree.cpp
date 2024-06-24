@@ -1,9 +1,12 @@
+//call init then fill the adj , edges then get the bridges tree
 int n,m;
 vector<pair<int,int>> adj[N] , edges;
 vector<int> BridgeTree[N];
 int lowLink[N] , dfn[N] , comp[N] , ndfn , comp_num;
 bool isBridge[N];//max M
 bool  vis[N];
+int All[N];
+int siz[N];
 void tarjan(int u , int par) {
     dfn[u] = lowLink[u] = ndfn++;
     for (auto &[v, id]: adj[u]) {
@@ -23,6 +26,7 @@ void tarjan(int u , int par) {
 void Find_component(int u , int par) {
     vis[u] = true;
     comp[u] = comp_num;
+    siz[comp_num]++;
     for (auto &[v, id]: adj[u])
         if (vis[v] == 0 && isBridge[id] == 0)
             Find_component(v, u);
@@ -31,6 +35,7 @@ void GetBridgesTree() {
     for (int i = 0; i < n; i++) {
         dfn[i] = -1;
         lowLink[i] = 0;
+        
     }
     ndfn = 0;
     tarjan(0, 0);
@@ -45,4 +50,21 @@ void GetBridgesTree() {
             BridgeTree[comp[edges[i].second]].emplace_back(comp[edges[i].first]);
         }
     }
+ 
+}
+void init(){
+	for (int i = 0; i < n; i++) {
+        dfn[i] = -1;
+        lowLink[i] = 0;
+        adj[i].clear();
+        BridgeTree[i].clear();
+        vis[i] = false;
+        comp[i] = -1;
+        siz[i] = 0;
+    }
+    edges.clear();
+    for(int i = 0;i<m;i++){
+    	isBridge[i] = false;
+    }
+    comp_num = 0;
 }
