@@ -10,7 +10,8 @@ inline integer to_int(const string& s, size_t* idx = 0, int base = 10) {
         x *= base, x += char_to_digit(s[i++]);
     if (idx)
         *idx = i;
-    return sign ? -x : x; }
+    return sign ? -x : x; 
+}
  
 template<class integer>
 inline string to_string(integer x, int base = 10) {
