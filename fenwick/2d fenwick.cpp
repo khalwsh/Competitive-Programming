@@ -1,33 +1,31 @@
-struct fenwick_2D{
-    int n;
-    vector<vector<int>>tree;
-    void init(int _n){
-        this->n=_n;
-        tree.resize(n,vector<int>(n));
+template<class T = int>
+struct BIT2D {
+    vector<vector<T>> tree;
+    int n , m;
+    void init(int n , int m) {
+        this->n = n; this->m = m;
+        tree.assign(n , vector<T>(m , 0));
     }
-    fenwick_2D(int _n=0){
-        this->n=_n;
-        tree.resize(n,vector<int>(n));
-    }
-    void update(int x,int y,int delta){
-        for(++x;x<=n;x+=x&-x){
-            for(int j=y+1;j<=n;j+=j&-j){
-                tree[x-1][j-1]+=delta;
+    void add(int x, int y, T val) {
+        for (int i = x + 1; i <= n; i += (i & (-i))) {
+            for (int j = y + 1; j <= m; j += (j & (-j))) {
+                tree[i - 1][j - 1] += val;
             }
         }
     }
-    int get(int x,int y){
-        int sum=0;
-        for(++x;x;x-=x&-x){
-            for(int j=y+1;j;j-=j&-j){
 
-                sum+=tree[x-1][j-1];
+    T sum(int x, int y) {
+        T ret = 0;
+        for (int i = x + 1; i; i -= (i & (-i))) {
+            for (int j = y + 1; j; j -= (j & (-j))) {
+                ret += tree[i - 1][j - 1];
             }
         }
-        return sum;
+        return ret;
     }
-    int get(int x1,int y1,int x2,int y2){
-        return get(x2,y2)-get(x2,y1-1)-get(x1-1,y2)+get(x1-1,y1-1);
+
+    T qru(int sx, int sy, int ex, int ey) {
+        return sum(ex, ey) - sum(ex, sy - 1) - sum(sx - 1, ey) + sum(sx - 1, sy - 1);
     }
+    T qru(int x , int y){ return sum(x , y , x , y); }
 };
-

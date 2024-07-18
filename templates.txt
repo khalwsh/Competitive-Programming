@@ -1,0 +1,2800 @@
+-------------------------------------2sat-----------------------------------------------------
+struct two_sat {
+    int n, cur_comp = 0;
+    vector<vector<int>> adj, adjr;
+    vector<int> order, comp, val;
+    two_sat(int n) : n(2 * n), adj(2 * n), adjr(2 * n), comp(2 * n) {}
+    void OR(int a, int sa, int b, int sb) { 
+        int pa = (2 * a) ^ sa, pb = (2 * b) ^ sb;
+        adj[pa ^ 1].push_back(pb);
+        adj[pb ^ 1].push_back(pa);
+        adjr[pb].push_back(pa ^ 1);
+        adjr[pa].push_back(pb ^ 1);
+    }
+ 
+    void Xor(int a, int sa, int b, int sb) {
+        OR(a, sa, b, sb);
+        OR(a, sa ^ 1, b, sb ^ 1);
+    }
+ 
+    void Imply(int a, int sa, int b, int sb){
+        OR(a, sa ^ 1, b, sb);
+    }
+    void BiImply(int a, bool f , int b , bool g){
+    	Imply(a , f , b ,g);
+    	Imply(b , g , a , f);
+    }
+ 
+    void dfs1(int v) {
+        comp[v] = 1;
+        for (int ch : adj[v]) if (!comp[ch]) dfs1(ch);
+        order.push_back(v);
+    }
+    void dfs2(int v) {
+        comp[v] = cur_comp;
+        for (int ch : adjr[v]) if (!comp[ch]) dfs2(ch);
+    }
+    bool satisfiable() {
+        for (int i = 0; i < n; i++) if (!comp[i]) dfs1(i);
+        reverse(order.begin(), order.end());
+        comp = vector<int>(n);
+        for (int v : order) if (!comp[v]) {
+            cur_comp++;
+            dfs2(v);
+        }
+        val = vector<int>(n / 2, -1);
+        for (int i = 0; i < n; i += 2) {
+            if (comp[i] == comp[i ^ 1]) return false;
+            val[i / 2] = comp[i] > comp[i ^ 1];
+        }
+        return true;
+    }
+    vector<int>answer(){
+    	return val;
+    }
+    void ForceTrue(int a){
+	OR(a , true , a , true);
+    }
+    void ForceFalse(int a){
+        OR(a , false ,a , false);
+    }
+
+};
+----------------------------------------------------------------------------------------------
+-------------------------------------------Art points-----------------------------------------
+int dfn[N],LowLink[N],ndfn = 0;
+vector<int>adj[N];
+bool IsArtPoints[N];
+vector<int>ArtPoints;
+void Tarjan(int node,int parent){
+    dfn[node] = LowLink[node] = ndfn++;
+    int child = 0;
+    for(auto &val:adj[node]){
+        if(dfn[val]==-1){
+            child++;
+            Tarjan(val,node);
+            LowLink[node] = min(LowLink[node],LowLink[val]);
+            if(LowLink[val]>=dfn[node]){
+                if(parent==-1&&child<=1)continue;
+                IsArtPoints[node] = true;
+            }
+        }else if(parent!=val){
+            LowLink[node] = min(LowLink[node],dfn[val]);
+        }
+    }
+}
+void Art(int n){
+    ndfn = 0;
+    for(int i=0;i<n;i++){
+        dfn[i] = -1;
+        IsArtPoints[i] = false;
+        LowLink[i] = 0;
+    }
+    for(int i=0;i<n;i++){
+        if(dfn[i]==-1)Tarjan(i,-1);
+    }
+    for(int i=0;i<n;i++){
+        if(IsArtPoints[i])ArtPoints.emplace_back(i);
+    }
+}
+----------------------------------------------------------------------------------------------
+--------------------------------------bellman-------------------------------------------------
+----basic----
+struct Edge {
+    int a, b, cost;
+};
+
+int n, m;
+vector<Edge> edges;
+
+void solve(int source)
+{
+    vector<int> d(n, inf);
+    d[source] = 0;
+    for (int i = 0; i < n - 1; ++i)
+        for (Edge e : edges)
+            if (d[e.a] < inf)
+                d[e.b] = min(d[e.b], d[e.a] + e.cost);
+    // display d, for example, on the screen
+}
+
+----any negative cycle----
+struct Edge {
+    int a, b, cost;
+};
+
+int n, m;
+vector<Edge> edges;
+
+vector<int> solve()
+{
+    vector<int> d(n);
+    vector<int> p(n, -1);
+    int x;
+    for (int i = 0; i < n; ++i) {
+        x = -1;
+        for (Edge e : edges) {
+            if(d[e.a] < inf){
+                if (d[e.a] + e.cost < d[e.b]) {
+                    d[e.b] = max(-INF, d[e.a] + e.cost);
+                    p[e.b] = e.a;
+                    x = e.b;
+                }
+            }
+        }
+    }
+
+    if (x == -1) {
+        return vector<int>{-1};
+    } else {
+        for (int i = 0; i < n; ++i)
+            x = p[x];
+
+        vector<int> cycle;
+        for (int v = x;; v = p[v]) {
+            cycle.push_back(v);
+            if (v == x && cycle.size() > 1)
+                break;
+        }
+        reverse(cycle.begin(), cycle.end());
+
+        return cycle;
+    }
+}
+----all nodes affected by negative cycle given start----
+struct Edge {
+    int a, b, cost;
+};
+
+int n, m;
+vector<Edge> edges;
+
+vector<int> solve(int source)
+{
+    vector<int> d(n, inf);
+    d[source] = 0;
+    for (int i = 0; i < n - 1; ++i)
+        for (Edge e : edges)
+            if (d[e.a] < inf)
+                d[e.b] = min(d[e.b], d[e.a] + e.cost);
+
+    vector<int>ref = d;
+    for (int i = 0; i < n; ++i)
+        for (Edge e : edges)
+            if (d[e.a] < inf)
+                d[e.b] = min(d[e.b], d[e.a] + e.cost);
+
+    vector<int>nodes;
+    
+    for(int i=0;i<n;i++){
+        if(ref[i] != d[i]){
+	   nodes.emplace_back(i);
+        }
+    }
+    return nodes;
+}
+----get path----
+struct Edge {
+    int a, b, cost;
+};
+int n, m;
+vector<Edge> edges;
+vector<int> solve(int source,int goal) {
+    vector<int> d(n, inf);
+    d[source] = 0;
+    vector<int> p(n, -1);
+
+    for (int i=0;i<n-1;i++) {
+        bool any = false;
+        for (Edge e : edges)
+            if (d[e.a] < inf)
+                if (d[e.b] > d[e.a] + e.cost) {
+                    d[e.b] = d[e.a] + e.cost;
+                    p[e.b] = e.a;
+                    any = true;
+                }
+        if (!any)
+            break;
+    }
+
+    if (d[goal] == inf)
+            return vector<int>{-1};
+    else {
+            vector<int> path;
+            for (int cur = goal; cur != -1; cur = p[cur])
+            path.push_back(cur);
+            reverse(path.begin(), path.end());
+            return path;
+         }
+}
+----custome negative cycle----
+struct Edge {
+    int a, b, cost;
+};
+
+int n, m;
+vector<Edge> edges;
+
+vector<int> solve(int source){
+    vector<int> d(n, inf);
+    d[source] = 0;
+    vector<int> p(n, -1);
+    int x;
+    for (int i = 0; i < n; ++i) {
+        x = -1;
+        for (Edge e : edges)
+            if (d[e.a] < inf)
+                if (d[e.b] > d[e.a] + e.cost) {
+                    d[e.b] = max(-INF, d[e.a] + e.cost);
+                    p[e.b] = e.a;
+                    x = e.b;
+                }
+    }
+
+    if (x == -1)
+        return vector<int>{-1};
+    else {
+        int y = x;
+        for (int i = 0; i < n; ++i)
+            y = p[y];
+
+        vector<int> path;
+        for (int cur = y;; cur = p[cur]) {
+            path.push_back(cur);
+            if (cur == y && path.size() > 1)
+                break;
+        }
+        reverse(path.begin(), path.end());
+
+        return path;
+    }
+}
+----------------------------------------------------------------------------------------------
+---------------------------------bit msks-----------------------------------------------------
+int Clear_all_trailing_ones(int n){
+    return n&(n+1);
+}
+int Clear_last_set_bit(int n){
+    return n&(n-1);
+}
+bool isDivisibleByPowerOf2(int n, int k) {
+    int powerOf2 = 1 << k;
+    return (n & (powerOf2 - 1)) == 0;
+}
+int Extract_last_bit(int n){
+    return n&-n;
+}
+void GospersHack(int n,int k,function<void(int)>f){
+    int sets=(1ll<<k)-1;
+    int limit=(1ll<<n);
+    while(sets<limit){
+        f(sets);//handle set
+        int c=sets&-sets;
+        int r=sets+c;
+        sets=(((r^sets)>>2)/c)|r;
+    }
+}
+bool isPowerOfTwo(unsigned int n) {
+    return n && !(n & (n - 1));
+}
+void MasksAndSubMasks(int n){
+    for(int i=0;i<(1<<n);i++){
+        for (int s=mask; s; s=(s-1)&mask){
+        //do your work on s
+        }
+    }
+}
+----------------------------------------------------------------------------------------------
+-----------------------------bridges----------------------------------------------------------
+
+vector<int>adj[N];
+vector<pair<int,int>>bridges;
+int dfn[N], LowLink[N],ndfn = 0;
+void Tarjan(int node,int parent){
+    dfn[node] = LowLink[node] = ndfn++;
+    for(auto &val:adj[node]){
+        if(dfn[val]==-1){
+            Tarjan(val,node);
+            LowLink[node] = min(LowLink[node],LowLink[val]);
+        }else if(parent!=val){
+            LowLink[node] = min(LowLink[node],dfn[val]);
+        }
+    }
+    if(LowLink[node]==dfn[node] && ~parent){
+        bridges.emplace_back(parent,node);
+    }
+}
+void Bridges(int n){
+    memset(dfn,-1,sizeof dfn);
+    for(int i=0;i<n;i++){
+        if(dfn[i]==-1){
+            Tarjan(i,-1);
+        }
+    }
+}
+----------------------------------------------------------------------------------------------
+----------------------------bridges tree------------------------------------------------------
+//call init then fill the adj , edges then get the bridges tree
+int n,m;
+vector<pair<int,int>> adj[N] , edges;
+vector<int> BridgeTree[N];
+int lowLink[N] , dfn[N] , comp[N] , ndfn , comp_num;
+bool isBridge[N];//max M
+bool  vis[N];
+int All[N];
+int siz[N];
+void tarjan(int u , int par) {
+    dfn[u] = lowLink[u] = ndfn++;
+    for (auto &[v, id]: adj[u]) {
+        if (dfn[v] == -1) {
+            tarjan(v, u);
+            lowLink[u] = min(lowLink[u], lowLink[v]);
+            if (lowLink[v] == dfn[v]) {
+                int uu = u, vv = v;
+                if (uu > vv) swap(uu, vv);
+                isBridge[id] = true;
+            }
+        } else if (v != par) {
+            lowLink[u] = min(lowLink[u], dfn[v]);
+        }
+    }
+}
+void Find_component(int u , int par) {
+    vis[u] = true;
+    comp[u] = comp_num;
+    siz[comp_num]++;
+    for (auto &[v, id]: adj[u])
+        if (vis[v] == 0 && isBridge[id] == 0)
+            Find_component(v, u);
+}
+void GetBridgesTree() {
+    for (int i = 0; i < n; i++) {
+        dfn[i] = -1;
+        lowLink[i] = 0;
+        
+    }
+    ndfn = 0;
+    tarjan(0, 0);
+    for (int i = 0; i < n; i++)
+        if (vis[i] == 0) {
+            Find_component(i, i);
+            comp_num++;
+        }
+    for (int i = 0; i < m; i++) {
+        if (isBridge[i]) {
+            BridgeTree[comp[edges[i].first]].emplace_back(comp[edges[i].second]);
+            BridgeTree[comp[edges[i].second]].emplace_back(comp[edges[i].first]);
+        }
+    }
+ 
+}
+void init(){
+	for (int i = 0; i < n; i++) {
+        dfn[i] = -1;
+        lowLink[i] = 0;
+        adj[i].clear();
+        BridgeTree[i].clear();
+        vis[i] = false;
+        comp[i] = -1;
+        siz[i] = 0;
+    }
+    edges.clear();
+    for(int i = 0;i<m;i++){
+    	isBridge[i] = false;
+    }
+    comp_num = 0;
+}
+----------------------------------------------------------------------------------------------
+----------------------------------------broken profile dp-------------------------------------
+int n , m;
+vector<int>adj[1<<10];
+int dp[1001][1<<10];
+bool can(int a, int b){
+	if(a & b)return false;
+	int x = ((~a & ~b) & ((1<<n) - 1));
+	if(x % 3 != 0)return false;
+	int y = x / 3;
+	return (y & (y<<1)) == 0;
+}
+signed main() {
+	khaled
+	cin>>n>>m;
+	for(int i = 0;i<(1<<n);i++){
+		for(int j=0;j<(1<<n);j++){
+			if(can(i , j)){
+				adj[i].emplace_back(j);
+			}
+		}
+	}
+	dp[0][0] = 1;
+	for(int i = 0;i<m;i++){
+		for(int j = 0;j<(1<<n);j++){
+			for(auto &val:adj[j]){
+				dp[i + 1][val] += dp[i][j];
+				dp[i + 1][val] %= mod;
+			}
+		}
+	}
+	cout<<dp[m][0]<<line;
+ 
+}
+----------------------------------------------------------------------------------------------
+--------------------# subsegs given sum-------------------------------------------------------
+
+ll a[N],dp[N];
+int main() {
+    khaled
+    int n, k;
+    cin >> n >> k;
+    for (int i = 1; i <= n; i++) cin >> a[i];
+    ll ans = 0;
+    for (int i = 1; i <= n; i++) {
+        dp[0] += 1;
+        for (int j = k; j >= a[i]; j--)
+            dp[j] = (dp[j] + dp[j - a[i]]) % mod;
+        ans = (ans + dp[k]) % mod;
+    }
+    cout << ans << endl;
+    return 0;
+}
+----------------------------------------------------------------------------------------------
+--------------------# subseqs given sum-------------------------------------------------------
+ll dp[3005];
+int n,m;
+int main() {
+    cin >> n >> m;
+    dp[0] = 1;
+    for (int i = 1; i <= n; ++i)
+        dp[0] = (dp[0] << 1) % mod;
+    int inv = fast_power(2ll , mod - 2 , mod);
+    for (int i = 1, x; i <= n; ++i) {
+        cin >> x;
+        for (int j = m; j >= x; --j)
+            dp[j] = (dp[j] + 1ll * dp[j - x] * inv) % mod;
+    }
+    cout << dp[m] << line;
+}
+-----------------------------------------------------------------------------------------------
+----------------------dsu----------------------------------------------------------------------
+----get set----
+struct dsu{
+    int n,cnt;
+    vector<int>size,parent,nxt,tail,sets,pos;
+    void init(int nn){
+        this->n=nn;
+        size.resize(n,1);
+        parent.resize(n);
+        nxt.resize(n,-1);
+        sets.resize(n);
+        pos.resize(n);
+        tail.resize(n);
+        iota(parent.begin(),parent.end(),0);
+        iota(tail.begin(),tail.end(),0);
+        iota(sets.begin(),sets.end(),0);
+        iota(pos.begin(),pos.end(),0);
+        cnt=nn;
+    }
+    dsu (int n=0){
+        init(n);
+    }
+    int find(int child){
+        return (child==parent[child]?child:parent[child]=find(parent[child]));
+    }
+    bool merge(int u,int v){
+        u=find(u);
+        v=find(v);
+        if(v==u)return false;
+        if(size[u]<size[v])swap(u,v);
+        parent[v]=u;
+        size[u]+=size[v];
+        int p=pos[v];
+        pos[sets[p]=sets[--cnt]]=p;
+        int &t=tail[u];
+        nxt[t]=v;
+        t=tail[v];
+        return true;
+
+    }
+    vector<int>get_set(int node){
+        node=find(node);
+        vector<int>res;
+        for(int i=sets[node];~i;i=nxt[i]){
+            res.emplace_back(i);
+        }
+        return  res;
+    }
+};
+---- augmented dsu----
+
+struct AugmentedDsu {
+    int flaw;     //counting numbers of inconsistent assertions
+    vector<int>diff,parent;
+    AugmentedDsu(int n) {
+        flaw = 0;
+        diff.resize(n);parent.resize(n);
+        for (int i = 0; i < n; ++i) {
+            parent[i] = i;
+            diff[i] = 0;
+        }
+    }
+    int find(int x) {
+        if (parent[x] == x) return x;
+        int rx = find(parent[x]);  // rx is the root of x
+        diff[x] = diff[parent[x]] + diff[x]; //add all potentials along the path,i.e.,potential calculated wrt root
+        parent[x] = rx;
+        return rx;
+    }
+    bool merge(int a, int b, int d) {
+        int ra = find(a);
+        int rb = find(b);
+        if (ra == rb && diff[a] - diff[b] != d) {
+            flaw++;
+            return false;
+        } else if (ra != rb) {
+            diff[ra] = d + diff[b] - diff[a];
+            parent[ra] = rb;
+        }
+        return true;
+    }
+    int query(int a,int b){
+        int ra = find(a);
+        int rb = find(b);
+        if(ra != rb){
+            //can't get answer
+            return -inf;
+        }
+        return diff[a] - diff[b];
+    }
+};
+----dsu on tree----
+int arr[N],siz[N],res[N];
+vector<int>adj[N];
+vector<int>v[N];
+map<int,int>s;
+void S(int node,int par){
+    siz[node] = 1;
+    for(auto &val:adj[node]){
+        if(val == par)continue;
+        S(val,node);
+        siz[node]+=siz[val];
+    }
+}
+void dfs(int node,int par,bool keep) {
+    int Max = -1, BigChild = -1;
+    //find the biggest child
+    for (auto &val: adj[node]) {
+        if (Max <= siz[val] && val != par) {
+            Max = siz[val];
+            BigChild = val;
+        }
+    }
+    //make dfs calls for light children and mark them that you should erase your answer to not ruin the global answer
+    for (auto &val: adj[node]) {
+        if (val != BigChild && val != par) {
+            dfs(val, node, false);
+        }
+    }
+    //if it's not a leaf node do dfs for big child and don't erase it's content
+    if (~BigChild) {
+        dfs(BigChild, node, true);
+        swap(v[node], v[BigChild]);//O(1) operation that make cur node have the big child content to append
+    }
+    //adding my self as part of my sub tree and adding my self to the answer
+    v[node].emplace_back(node);
+    s[arr[node]]++;
+    //iterate on small children subtrees and update the answer
+    for (auto &val: adj[node]) {
+        if (val != par && val != BigChild) {
+            for(auto &x:v[val]) {
+                v[node].emplace_back(x);
+                s[arr[x]]++;
+            }
+        }
+    }
+    //calculating the answer for node
+    res[node] = (int) s.size();
+    //if you are light child erase your effect on the shared array that help me to answer to the nodes
+    if (!keep) {
+        for (auto &val: v[node]) {
+            s[arr[val]]--;
+            if (s[arr[val]] == 0)s.erase(arr[val]);
+        }
+    }
+}
+----dsu on tree----
+int n;
+int id[N],values[N];
+vector<int>adj[N];
+vector<int>sets[N];
+int res = 0;
+int dfs(int node,int par){
+    int a = id[node];
+    for(auto &val:adj[node]){
+        if(val==par)continue;
+        int b = dfs(val,node);
+        if(sets[a].size() > sets[b].size())
+            swap(a,b);
+        for(auto &x:sets[a]){
+            //small set append it to set[b]
+        }
+        sets[a].clear();
+    }
+    return a;
+}
+void init(){
+    for(int i=0;i<n;i++){
+        sets[i][values[i]]++;
+        id[i] = i;
+    }
+}
+----roll back----
+struct RollBackDsu{
+    vector<int>parent,size;
+    stack<pair<pair<int,int>,pair<int,int>>>sk;
+    RollBackDsu(int _n){
+        parent.resize(_n);
+        iota(parent.begin(),parent.end(),0ll);
+        size.resize(_n,1);
+    }
+    int find(int child){
+        return (child == parent[child]?child:find(parent[child]));
+    }
+    bool Merge(int a,int b){
+        a = find(a);
+        b = find(b);
+        if(a==b)return false;
+        if(size[a]>size[b])swap(a,b);
+        sk.push({{a,parent[a]},{b,size[b]}});
+        parent[a] = b;
+        size[b] += size[a];
+        return true;
+    }
+    void RollBack(int cnt){
+        assert(cnt <= sk.size());
+        while(cnt--){
+            auto it = sk.top();
+            sk.pop();
+            parent[it.first.first] = it.first.second;
+            size[it.second.first] = it.second.second;
+        }
+    }
+};
+----online 2-color----
+struct dsu {
+    vector<int>rank,bipartite;
+    vector<pair<int,int>>parent;
+    dsu(int _n){
+        rank.resize(_n),bipartite.resize(_n);
+        parent.resize(_n);
+        for(int i=0;i<_n;i++)make_set(i);
+    }
+    void make_set(int v) {
+        parent[v] = make_pair(v, 0);
+        rank[v] = 0;
+        bipartite[v] = true;
+    }
+
+    pair<int, int> find(int v) {
+        if (v != parent[v].first) {
+            int parity = parent[v].second;
+            parent[v] = find(parent[v].first);
+            parent[v].second ^= parity;
+        }
+        return parent[v];
+    }
+
+    void add_edge(int a, int b) {
+        pair<int, int> pa = find(a);
+        a = pa.first;
+        int x = pa.second;
+
+        pair<int, int> pb = find(b);
+        b = pb.first;
+        int y = pb.second;
+
+        if (a == b) {
+            if (x == y)
+                bipartite[a] = false;
+        } else {
+            if (rank[a] < rank[b])
+                swap(a, b);
+            parent[b] = make_pair(a, x ^ y ^ 1);
+            bipartite[a] &= bipartite[b];
+            if (rank[a] == rank[b])
+                ++rank[a];
+        }
+    }
+
+    bool is_bipartite(int v) {
+        return bipartite[find(v).first];
+    }
+};
+--------------------------------------------------------------------------------------------
+---------------------------------euler tour-------------------------------------------------
+----direct cycle----
+class DirectedEulerCycle{
+public:
+    vector<vector<int>>adj;
+    vector<int>in,out;
+    vector<int>tour;
+    int n;
+    int s=-1;
+    DirectedEulerCycle(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        in.resize(n),out.resize(n);
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            out[val.first]++,in[val.second]++;
+        }
+    }
+    void dfs(int node){
+        while(!adj[node].empty()){
+            int x=adj[node].back();
+            adj[node].pop_back();
+            dfs(x);
+        }
+        tour.emplace_back(node);
+    }
+    bool Get(){
+        int counter1=0;
+        for(int i=0;i<n;i++){
+            if(in[i]==out[i])counter1++;
+            else {
+                return false;
+            }
+        }
+        for(int i=0;i<n;++i){
+            if(in[i]||out[i]){
+                s=i;break;
+            }
+        }
+        dfs(s);
+        bool all=false;
+        for(int i=0;i<n;i++){
+            all=all||(int)adj[i].size();
+        }
+        if(!all){
+            reverse(tour.begin(),tour.end());
+            return true;
+        }else
+            return false;
+    }
+};
+----direct path----
+int n,m;
+vector<int>adj[N];
+vector<int>tour;
+int in[N],out[N];
+int Start=-1,End=-1;
+bool euler(){
+    for(int i=0;i<n;i++){
+        if(out[i]-in[i]>1||in[i]-out[i]>1)return false;
+        if(in[i]==out[i]+1){
+            if(End!=-1)return false;
+            End = i;
+        }
+        if(in[i]+1==out[i]){
+            if(Start!=-1)return false;
+            Start = i;
+        }
+    }
+    return true;
+}
+void dfs(int node){
+    while(out[node]){
+        dfs(adj[node][--out[node]]);
+    }
+    tour.emplace_back(node);
+}
+----undirect cycle----
+int n,m;
+set<int>adj[N];
+int degree[N];
+vector<int>tour;
+void dfs(int node){
+    while((int)adj[node].size()){
+        int x = *adj[node].rbegin();
+        adj[node].erase(x);
+        if(adj[x].count(node)){
+            adj[x].erase(node);
+            dfs(x);
+        }
+    }
+    tour.emplace_back(node);
+}
+bool check(){
+    for(int i=0;i<n;i++){
+        if(degree[i]&1){
+            return false;
+        }
+    }
+    return true;
+}
+bool get(){
+    dfs(0);
+    reverse(tour.begin(),tour.end());
+    if(tour.size()!=m+1){
+        return false;
+    }
+    return true;
+}
+----undirect path----
+----- code for Euler path for undirected graph -----
+class UnDirectedEulerPath{
+public:
+    int n;
+    vector<vector<int>>adj;
+    vector<int>deg;
+    vector<int>tour;
+    map<pair<int,int>,int>edges;
+    int StartingNode=-1,EndingNode=-1;
+    UnDirectedEulerPath(int n,vector<pair<int,int>>&edges){
+        this->n=n;
+        adj.resize(n);
+        deg.resize(n);
+        for(auto &val:edges){
+            this->edges[val]++;
+            pair<int,int>p=val;
+            swap(p.first,p.second);
+            this->edges[p]++;
+        }
+        for(auto &val:edges){
+            adj[val.first].emplace_back(val.second);
+            adj[val.second].emplace_back(val.first);
+            deg[val.first]++,deg[val.second]++;
+        }
+    }
+    void component(int node,vector<bool>&vis){
+        vis[node]=true;
+        for(auto &val:adj[node]){
+            if(!vis[val])
+                component(val,vis);
+        }
+    }
+    bool check(){
+        vector<bool>vis(n,false);
+        for(int i=0;i<n;i++){
+            if(deg[i]){
+                component(i,vis);
+                break;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(!vis[i]&&deg[i]){
+                return false;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(deg[i]&1^1)continue;
+            else if(StartingNode==-1)StartingNode=i;
+            else if(EndingNode==-1)EndingNode=i;
+            else return false;
+        }
+        if(StartingNode==-1){
+            for(int i=0;i<n;i++){
+                if(deg[i]){
+                    StartingNode=i;
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+    void DFS(int node){
+        for(auto &val:adj[node]){
+            if(this->edges[make_pair(node,val)])
+              this->edges[make_pair(node,val)]--,this->edges[make_pair(val,node)]--,DFS(val);
+        }
+        tour.emplace_back(node);
+    }
+    void Get(){
+        map<pair<int,int>,int>TempEdges=edges;
+        DFS(StartingNode);
+        edges=TempEdges;
+        reverse(tour.begin(),tour.end());
+    }
+};
+-----------------------------------------------------------------------------------------------
+--------------------------fenwick--------------------------------------------------------------
+----1d----
+struct Fenwick{
+    int n;
+    vector<int>tree;
+    void init(int _n){
+        n=_n;
+        tree.resize(this->n);
+    }
+    void add(int pos,int value){
+        for(int i=pos+1;i<=n;i+=i&-i)tree[i-1]+=value;
+    }
+    int get(int pos) {
+        int sum = 0;
+        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
+        return sum;
+    }
+    int query(int l,int r){
+        return get(r)-get(l-1);//send zero base
+    }
+};
+----2d----
+template<class T = int>
+struct BIT2D {
+    vector<vector<T>> tree;
+    int n , m;
+    void init(int n , int m) {
+        this->n = n; this->m = m;
+        tree.assign(n , vector<T>(m , 0));
+    }
+    void add(int x, int y, T val) {
+        for (int i = x + 1; i <= n; i += (i & (-i))) {
+            for (int j = y + 1; j <= m; j += (j & (-j))) {
+                tree[i - 1][j - 1] += val;
+            }
+        }
+    }
+
+    T sum(int x, int y) {
+        T ret = 0;
+        for (int i = x + 1; i; i -= (i & (-i))) {
+            for (int j = y + 1; j; j -= (j & (-j))) {
+                ret += tree[i - 1][j - 1];
+            }
+        }
+        return ret;
+    }
+
+    T qru(int sx, int sy, int ex, int ey) {
+        return sum(ex, ey) - sum(ex, sy - 1) - sum(sx - 1, ey) + sum(sx - 1, sy - 1);
+    }
+    T qru(int x , int y){ return sum(x , y , x , y); }
+};
+----multiset----
+// you can't insert zeros and you can't insert negative make shift or compression
+
+struct Bit{
+    int N=1<<20;
+    vector<int>tree;
+    void init(){
+        tree.resize(this->N);
+    }
+    void add(int pos,int value){
+        for(int i=pos+1;i<=N;i+=i&-i)tree[i-1]+=value;
+    }
+    int get(int pos) {
+        int sum = 0;
+        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
+        return sum;
+    }
+    int find(int t){
+        int st=0;
+        for(int sz=N>>1;sz;sz>>=1){
+            if(tree[st+sz-1]<t){
+                t-=tree[(st+=sz)-1];
+            }
+        }
+        return st;
+    }
+};
+struct MultiSet{
+    Bit bit;
+    MultiSet(){
+        bit.init();
+        bit.add(0,-1);
+    }
+    void insert(int value){
+        bit.add(value,1);
+    }
+    void erase(int value){
+        bit.add(value,-1);
+    }
+    int count(int value){
+        return bit.get(value)-bit.get(value-1);
+    }
+    int size(){
+        return bit.get(bit.N-1)+1;
+    }
+    int at(int index){
+        return bit.find(index);//return the value which at index (index)
+    }
+    int order_of_key(int key){
+        int left = 0 , right = size()-1;
+        int res = right + 1;
+        while(left<=right){
+            int mid = left+(right-left)/2;
+            if(at(mid)>=key){
+                res = mid;
+                right = mid-1;
+            }else{
+                left = mid+1;
+            }
+        }
+        return res;
+    }
+};
+----offline distinct----
+/* the idea is to sort the queries from large l to smallest and maintain map
+   of left most index a value appear in and whenever you find query has l == i where i iterating from n - 1
+   you handle those queries and when you see a value exist in the map you Update it's postion with -1 and update
+   the map_postion with i then update this postion in fenwick with 1
+*/
+int n,q;
+int v[N];
+vector<pair<int,int>>queries[N];
+int ans[N];
+struct Fenwick{
+    int n;
+    vector<int>tree;
+    void init(int _n){
+        n=_n;
+        tree.resize(this->n);
+    }
+    void add(int pos,int value){
+        for(int i=pos+1;i<=n;i+=i&-i)tree[i-1]+=value;
+    }
+    int get(int pos) {
+        int sum = 0;
+        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
+        return sum;
+    }
+    int query(int l,int r){
+        return get(r)-get(l-1);//send zero base
+    }
+};
+
+signed main() {
+    khaled
+    cin>>n>>q;
+    for(int i=0;i<n;i++){
+        cin>>v[i];
+    }
+    Fenwick fen;
+    fen.init(n);
+    map<int,int>last_index;
+    for(int i=0;i<q;i++){
+        int l,r;
+        cin>>l>>r;
+        l--,r--;
+        queries[l].emplace_back(r,i);
+    }
+    for(int i=n-1;i>=0;i--){
+        int val = v[i];
+        if(last_index.count(val)){
+            fen.add(last_index[val],-1);
+        }
+        last_index[val] = i;
+        fen.add(i,1);
+        for(auto &j:queries[i]){
+            ans[j.second] = fen.get(j.first);
+        }
+    }
+    for(int i=0;i<q;i++){
+        cout<<ans[i]<<line;
+    }
+}
+----range upd----
+struct BitRange{
+    //expected from user to deal with zero base
+    int N;
+    vector<int>m,c;
+    void init(int x){
+        N=x;
+        m.resize(N),c.resize(N);
+    }
+    void add(int pos,int mVal,int cVal){
+        for(++pos;pos<=N;pos+=pos&-pos){
+            m[pos-1]+=mVal;
+            c[pos-1]+=cVal;
+        }
+    }
+    int get(int pos){
+        int ret=0;
+        int x=pos;
+        for(pos++;pos;pos-=pos&-pos){
+            ret+=m[pos-1]*x+c[pos-1];
+        }
+        return ret;
+    }
+    void addRange(int l,int r,int value){
+        add(l,value,-value*(l-1));
+        add(r+1,-value,value*r);
+    }
+};
+----------------------------------------------------------------------------------------------------
+--------------------------------------------Floyed--------------------------------------------------
+---- basic floyed ----
+void shortest_distance(vector<vector<int>>&matrix) {
+    int n = (int) matrix.size();
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            for (int k = 0; k < n; k++)
+                matrix[j][k] = min(matrix[j][k], matrix[j][i] + matrix[i][k]);
+        }
+    }
+}
+---- count paths ----
+void CountPaths(vector<vector<int>>&adj) {
+    int n = (int)adj.size();
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++)
+                adj[i][j] += adj[i][k] * adj[k][j];
+        }
+    }
+}
+---- diameter ---- 
+int diameter(vector<vector<int>>&adj) {
+    int n = (int) adj.size();
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            for (int k = 0; k < n; k++) {
+                adj[j][k] = min(adj[j][k], adj[j][i] + adj[i][k]);
+            }
+        }
+    }
+    int graph_diameter = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (adj[i][j] < inf)
+                graph_diameter = max(graph_diameter, adj[i][j]);
+        }
+    }
+    return graph_diameter;
+}
+---- get path ----
+vector<vector<int>>adj,parent;
+vector<int>path;
+void GetPath(int i,int j){
+    if(i != j){
+        GetPath(i , parent[i][j]);
+    }
+    path.emplace_back(j);
+}
+----longest path ----
+void LongestPath(vector<vector<int>>&adj,int n) {
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                adj[i][j] = max(adj[i][j], max(adj[i][k], adj[k][j]));
+            }
+        }
+    }
+}
+---- max min edge----
+void MaxMinEdge(vector<vector<int>>&adj,int n) {
+    //find road that min value is maximum
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++)
+                adj[i][j] = max(adj[i][j], min(adj[i][k], adj[k][j]));
+        }
+    }
+}
+---- min max edge----
+void MaxMinEdgeONPath(vector<vector<int>>&adj) {
+    //adj[i][j] -- > represent the min(max edge) you can get in the shortest path between i , j
+    int n = (int)adj.size();
+    for (int k = 0; k < n; k++){
+        for (int i = 0; i < n; i++){
+            for (int j = 0; j < n; j++)
+                adj[i][j] = min(adj[i][j], max(adj[i][k], adj[k][j]));
+        }
+    }
+}
+---- negative cycle ----
+bool CheckCycleEffect(vector<vector<int>>&adj,int source,int dist) {
+    //apply floyed first
+    int n = (int)adj.size();
+    for (int i = 0; i < n; i++) {
+        if (adj[i][i] != 0 && adj[source][i] < inf && adj[i][dist] < inf)
+            return true;
+    }
+    return false;
+}
+---- negative cycle ----
+bool NegativeCycle(vector<vector<int>>&adj,int n) {
+    //apply floyed first
+    for (int i = 0; i < n; i++)
+        if (adj[i][i] != 0)
+            return true;
+    return false;
+}
+---- path exist ----
+void PathExist(vector<vector<bool>>&adj) {
+    int n = (int) adj.size();
+    for (int k = 0; k < n; k++){
+        for (int i = 0; i < n; i++){
+            for (int j = 0; j < n; j++)
+                adj[i][j] = (adj[i][j] | (adj[i][k] & adj[k][j]));
+        }
+    }
+}
+---- scc ---- 
+int n;
+vector<vector<int>>adj;
+vector<int> comp(n, -1);
+vector<vector<int>>scc() {
+    int cnt = 0;
+    for (int i = 0; i < n; i++) {
+        if (comp[i] == -1) {
+            comp[i] = cnt++;
+            for (int j = 0; j < n; j++) {
+                if (adj[i][j] < inf && adj[j][i] < inf)
+                    comp[j] = comp[i];
+            }
+        }
+    }
+    vector<vector<int>>CompGraph(cnt,vector<int>(cnt));
+    for(int i=0;i<n;i++) {
+        for (int j = 0; j < n; j++) {
+            if (adj[i][j] != inf) {
+                CompGraph[comp[i]][comp[j]] += 1;
+            }
+        }
+    }
+    return CompGraph;//compressed graph
+}
+---------------------------------------------------------------------------------------------------------------
+-----------------------------------Merge sort tree-------------------------------------------------------------
+---- smaller than x ----
+struct MergeSortTree{
+    vector<vector<int>>tree;
+    MergeSortTree(int n){
+        tree.resize(4 * n);
+    }
+    void build(int node , int nl,int nr , vector<int>&a){
+        if(nl == nr){
+            tree[node].emplace_back(a[nl]);
+            return;
+        }
+        int mid = nl + (nr - nl) / 2;
+        build(2 * node + 1 , nl , mid , a);
+        build(2 * node + 2 , mid + 1 , nr , a);
+        merge(tree[2 * node + 1].begin(), tree[2 * node + 1].end(),tree[2 * node + 2].begin(), tree[2 * node + 2].end(),back_inserter(tree[node]));
+    }
+    int query(int node,int nl,int nr,int l ,int r,int value){
+        // less than
+        if(nl >=l && nr <= r){
+            return (int)(lower_bound(tree[node].begin() , tree[node].end() , value) - tree[node].begin());
+        }
+        if(nl > r || nr < l)return 0;
+        int mid = nl + (nr - nl) / 2;
+        return query(2 * node + 1 , nl , mid , l , r ,value) + query(2 * node + 2 , mid + 1 , nr , l , r , value);
+    }
+};
+---- greater than x ----
+struct MergeSortTree{
+    vector<vector<int>>tree;
+    int n;
+    MergeSortTree(int _n){
+        n = _n;
+        tree.resize(4*n);
+    }
+    void build(int node,int nl,int nr){
+        if(nl==nr){
+            tree[node].emplace_back(arr[nl]);
+            return;
+        }
+        int mid = nl + (nr - nl)/2;
+        build(2*node+1,nl,mid);
+        build(2*node+2,mid+1,nr);
+        merge(tree[2*node+1].begin(), tree[2*node+1].end(),tree[2*node+2].begin(), tree[2*node+2].end(),inserter(tree[node], tree[node].end()));
+    }
+    int query(int node,int nl,int nr,int l,int r,int k){
+        if(nl>=l && nr<= r){
+            auto it = nr - nl + 1 - (upper_bound(tree[node].begin(),tree[node].end(),k) - tree[node].begin());
+            return it;
+        }
+        if(nl>r||nr<l)return 0;
+        int mid = nl + (nr - nl)/2;
+        return query(2*node+1,nl,mid,l,r,k) + query(2*node+2,mid+1,nr,l,r,k);
+    }
+};
+---- kth element in range ----
+//problem given m queries of style (l,r,k) return the kth value in the subArray[l,r] if it was sorted.
+
+struct node{
+    vector<int>v;
+    node operator+(const node&a2){
+        node res;
+        int p1=0,p2=0;
+        while(p1<v.size()&&p2<a2.v.size()){
+            if(v[p1]<a2.v[p2])res.v.emplace_back(v[p1]),p1++;
+            else res.v.emplace_back(a2.v[p2]),p2++;
+        }
+        while(p1<v.size())res.v.emplace_back(v[p1]),p1++;
+        while(p2<a2.v.size())res.v.emplace_back(a2.v[p2]),p2++;
+        return res;
+    }
+    void merge(const node&a,const node&b){
+        std::merge(a.v.begin(),a.v.end(),b.v.begin(),b.v.end(),inserter(v,v.begin()));
+
+    }
+};
+struct SegmentTree{
+    vector<node>tree;
+    int n;
+    SegmentTree(int n){
+        this->n=n;
+        tree.resize(n*4);
+    }
+    void build(int nd,int nl,int nr,vector<int>&v){
+        if(nl==nr){
+            tree[nd].v.emplace_back(v[nl]);
+            return;
+        }
+        int mid=nl+(nr-nl)/2;
+        build(2*nd+1,nl,mid,v);
+        build(2*nd+2,mid+1,nr,v);
+        tree[nd].merge(tree[2*nd+1],tree[2*nd+2]);
+    }
+    int query(int nd,int nl,int nr,int l,int r,int value){
+        if(nl>r||nr<l)return 0;
+        if(nl>=l&&nr<=r)return lower_bound(tree[nd].v.begin(),tree[nd].v.end(),value)-tree[nd].v.begin();
+        int mid=nl+(nr-nl)/2;
+        return query(2*nd+1,nl,mid,l,r,value)+query(2*nd+2,mid+1,nr,l,r,value);
+    }
+};
+signed main() {
+    khaled
+    int n,m;
+    cin>>n>>m;
+    vector<int>v(n);
+    for(auto &val:v)cin>>val;
+    SegmentTree seg(n);
+    seg.build(0,0,n-1,v);
+    while(m--){
+        int l,r,k;
+        cin>>l>>r>>k;
+        l--,r--;
+        int left=-1e9,right=1e9;
+        int res=-inf;
+        while(left<=right){
+            int mid=left+(right-left)/2;
+            if(seg.query(0,0,n-1,l,r,mid)>=k)res=mid,right=mid-1;
+            else left=mid+1;
+        }
+        cout<<res-1<<line;
+    }
+}
+----------------------------------------------------------------------------------------------------------
+----------------------------------Montonic stack ---------------------------------------------------------
+vector<int> getNxtMin(vector<int> &arr) {
+    stack<int> st;
+    vector<int> res(arr.size(), arr.size());
+    for (int i = 0; i < arr.size(); i++) {
+        while (!st.empty() && arr[st.top()] > arr[i]) {
+            res[st.top()] = i;
+            st.pop();
+        }
+        st.push(i);
+    }
+    return res;
+}
+ 
+vector<int> getPrevMin(vector<int> &arr) {
+    stack<int> st;
+    vector<int> res(arr.size(), -1);
+    for (int i = arr.size() - 1; i >= 0; i--) {
+        while (!st.empty() && arr[st.top()] >= arr[i]) {
+            res[st.top()] = i;
+            st.pop();
+        }
+        st.push(i);
+    }
+    return res;
+}
+ 
+vector<int> getNxtMax(vector<int> &arr) {
+    stack<int> st;
+    vector<int> res(arr.size(), arr.size());
+    for (int i = 0; i < arr.size(); i++) {
+        while (!st.empty() && arr[st.top()] < arr[i]) {
+            res[st.top()] = i;
+            st.pop();
+        }
+        st.push(i);
+    }
+    return res;
+}
+ 
+vector<int> getPrevMax(vector<int> &arr) {
+    stack<int> st;
+    vector<int> res(arr.size(), -1);
+    for (int i = arr.size() - 1; i >= 0; i--) {
+        while (!st.empty() && arr[st.top()] <= arr[i]) {
+            res[st.top()] = i;
+            st.pop();
+        }
+        st.push(i);
+    }
+    return res;
+}
+----------------------------------------------------------------------------------------------------------
+--------------------------------Mo------------------------------------------------------------------------
+---- normal ----
+int BLOCK_SIZE = 317;
+struct Query{
+    int l , r,id;
+    bool operator < (const Query &other) const{
+        int n1 = l / BLOCK_SIZE, n2 = other.l / BLOCK_SIZE;
+        if(n1 != n2) return n1 < n2;
+        return (n1 % 2) ? r > other.r : r < other.r;
+    }
+};
+void add(int MoIdx){
+
+}
+void remove(int MoIdx){
+
+}
+void Mo(vector<Query> &queries){
+    int MoLeft = 0,MoRight = -1;
+    for(auto &q: queries){
+        while(MoRight < q.r) add(++MoRight);
+        while(MoLeft > q.l) add(--MoLeft);
+        while(MoRight > q.r) remove(MoRight--);
+        while(MoLeft < q.l) remove(MoLeft++);
+        //res[q.id] = cnt;
+    }
+}
+---- fast mo ----
+struct Query {
+    int l, r, idx;
+    int ord;
+    static int rotateDelta[4];
+    Query(int L,int R,int Idx){
+        idx = Idx;
+        l = L;
+        r = R;
+        ord = gilbertOrder(l,r,21,0);
+    }
+    bool operator<( const Query &b)const {
+        return ord < b.ord;
+    }
+    int gilbertOrder(int x, int y, int pow, int rotate) {
+        if (pow == 0) {
+            return 0;
+        }
+        int hpow = 1 << (pow-1);
+        int seg = (x < hpow) ? (
+                (y < hpow) ? 0 : 3
+        ) : (
+                          (y < hpow) ? 1 : 2
+                  );
+        seg = (seg + rotate) & 3;
+        int nx = x & (x ^ hpow), ny = y & (y ^ hpow);
+        int Nrot = (rotate + rotateDelta[seg]) & 3;
+        int64_t subSquareSize = int64_t(1) << (2*pow - 2);
+        int64_t ans = seg * subSquareSize;
+        int64_t add = gilbertOrder(nx, ny, pow-1, Nrot);
+        ans += (seg == 1 || seg == 2) ? add : (subSquareSize - add - 1);
+        return ans;
+    }
+};
+int Query::rotateDelta[4] = {3, 0, 0, 1};
+void add(int MoIdx){
+
+}
+void remove(int MoIdx){
+
+}
+void Mo(vector<Query> &queries){
+    int MoLeft = 0,MoRight = -1;
+    for(auto &q: queries){
+        while(MoRight < q.r) add(++MoRight);
+        while(MoLeft > q.l) add(--MoLeft);
+        while(MoRight > q.r) remove(MoRight--);
+        while(MoLeft < q.l) remove(MoLeft++);
+        //res[q.id] = cnt;
+    }
+}
+---- Mo on tree ----
+int n,m;
+const int k = 20,SQ = 400;
+vector<int>adj[N];
+int Cost[N],UP[k][N],Parent[N],LinearTree[N],Timer = 0,Depth[N],root = 0,ST[N],EN[N],CompressionValue = 1,ans[N],res = 0,Freq[N];
+bool IsOdd[N];
+void MarkDepth(int node,int par,int c = 0) {
+    Depth[node] = c;
+    for (auto &val: adj[node]) {
+        if (val == par)continue;
+        MarkDepth(val, node, c + 1);
+    }
+}
+void Rooting() {
+    queue<pair<int, int>> q;
+    q.emplace(root, -1);
+    while (!q.empty()) {
+        int node = q.front().first;
+        int par = q.front().second;
+        q.pop();
+        for (auto &val: adj[node]) {
+            if (val != par) {
+                Parent[val] = node;
+                q.emplace(val, node);
+            }
+        }
+    }
+    Parent[root] = root;
+}
+void BuildLiftingTable() {
+    MarkDepth(root, -1);
+    for (int i = 0; i < n; i++) {
+        UP[0][i] = Parent[i];
+    }
+    for (int i = 1; i < k; i++) {
+        for (int j = 0; j < n; j++) {
+            UP[i][j] = UP[i - 1][UP[i - 1][j]];
+        }
+    }
+}
+int Walk(int node,int kth) {
+    if (Depth[node] < kth)return -1;
+    for (int i = 0; i < k; i++) {
+        if (kth & (1 << i)) {
+            node = UP[i][node];
+        }
+    }
+    return node;
+}
+int LCA(int a,int b) {
+    if (Depth[b] > Depth[a])swap(a, b);
+    a = Walk(a, Depth[a] - Depth[b]);
+    if (a == b)return a;
+    for (int i = k - 1; i >= 0; i--) {
+        if (UP[i][a] != UP[i][b]) {
+            a = UP[i][a];
+            b = UP[i][b];
+        }
+    }
+    return Parent[a];
+}
+void Linear(int node,int par) {
+    LinearTree[Timer] = node;
+    ST[node] = Timer;
+    Timer++;
+    for (auto &val: adj[node]) {
+        if (val == par)continue;
+        Linear(val, node);
+    }
+    LinearTree[Timer] = node;
+    EN[node] = Timer;
+    Timer++;
+}
+map<int,int>compression;
+struct Query {
+    int l, r, lca , idx ;
+    bool work;
+
+    Query(int L = 0, int R = 0, int Lca = 0,int i = 0, bool W = false) {
+        l = L;
+        r = R;
+        lca = Lca;
+        idx = i;
+        work = W;
+    }
+
+    bool operator<(const Query &other) {
+        return make_pair(l / SQ, r) < make_pair(other.l / SQ, other.r);
+    }
+};
+void AddElement(int node){
+    Freq[Cost[node]]++;
+    if(Freq[Cost[node]]==1)res++;
+}
+
+void EraseElement(int node){
+    Freq[Cost[node]]--;
+    if(Freq[Cost[node]]==0)res--;
+}
+
+void UpdateMoState(int node){
+    IsOdd[node]^=true;
+    return void(IsOdd[node]? AddElement(node): EraseElement(node));
+}
+
+signed main() {
+    khaled
+    cin >> n >> m;
+    for (int i = 0; i < n; i++) {
+        cin >> Cost[i];
+        if (compression.count(Cost[i])) {
+            Cost[i] = compression[Cost[i]];
+            continue;
+        }
+        compression[Cost[i]] = CompressionValue++;
+        Cost[i] = compression[Cost[i]];
+    }
+    for (int j = 0; j < n - 1; j++) {
+        int a, b;
+        cin >> a >> b;
+        a--, b--;
+        adj[a].emplace_back(b);
+        adj[b].emplace_back(a);
+    }
+    Rooting();
+    BuildLiftingTable();
+    Linear(root, -1);
+    vector<Query> queries;
+    for (int i = 0; i < m; i++) {
+        int l, r;
+        cin >> l >> r;
+        l--, r--;
+        if (ST[l] > ST[r])swap(l, r);
+        int lca = LCA(l, r);
+        if (lca == l) {
+            queries.emplace_back(ST[lca], ST[r], lca,i, false);
+        } else {
+            queries.emplace_back(EN[l], ST[r], lca, i,true);
+        }
+    }
+    sort(queries.begin(), queries.end());
+    int MoRight = -1, MoLeft = 0;
+    for (auto &val: queries) {
+        int idx = val.idx;
+        int l = val.l;
+        int r = val.r;
+        while (MoRight < r) {
+            MoRight++;
+            UpdateMoState(LinearTree[MoRight]);
+        }
+        while (MoLeft > l) {
+            MoLeft--;
+            UpdateMoState(LinearTree[MoLeft]);
+        }
+        while (MoRight > r) {
+            UpdateMoState(LinearTree[MoRight]);
+            MoRight--;
+        }
+        while (MoLeft < l) {
+            UpdateMoState(LinearTree[MoLeft]);
+            MoLeft++;
+        }
+        if (val.work)UpdateMoState(val.lca);
+        ans[idx] = res;
+        if (val.work) UpdateMoState(val.lca);
+    }
+    for (int i = 0; i < m; i++) {
+        cout << ans[i] << line;
+    }
+}
+---- normal mo with upd ----
+int A[N],n,comp[2 * N],ans[N];
+int Freq[2 * N],old[2 * N],New[2 * N];
+int upIdx[N];
+int st,en,tim,BlockSize,CompSize,q,nq,cnt = 0;
+int qs[N],qe[N],qi[N],qt[N];
+void compress() {
+    sort(comp, comp + CompSize);
+    CompSize = (int)(unique(comp, comp + CompSize) - comp);
+    for (int i = 0; i < n; i++) {
+        A[i] = (int)(lower_bound(comp, comp + CompSize, A[i]) - comp);
+    }
+    for (int i = 1; i <= tim; i++) {
+        old[i] = (int)(lower_bound(comp, comp + CompSize, old[i]) - comp);
+        New[i] = (int)(lower_bound(comp, comp + CompSize, New[i]) - comp);
+    }
+}
+void Add(int CompressedValue) {
+    
+}
+void Erase(int CompressedValue) {
+    
+}
+void update(int qId) {
+    while (tim < qt[qId]) {
+        tim++;
+        if (upIdx[tim] >= st && upIdx[tim] < en) {
+            Erase(old[tim]);
+            Add(New[tim]);
+        }
+        A[upIdx[tim]] = New[tim];
+    }
+    while (tim > qt[qId]) {
+        if (upIdx[tim] >= st && upIdx[tim] < en) {
+            Erase(New[tim]);
+            Add(old[tim]);
+        }
+        A[upIdx[tim]] = old[tim];
+        tim--;
+    }
+    while (en <= qe[qId]) {
+        Add(A[en++]);
+    }
+    while (en - 1 > qe[qId]) {
+        Erase(A[--en]);
+    }
+    while (st - 1 >= qs[qId]) {
+        Add(A[--st]);
+    }
+    while (st < qs[qId]) {
+        Erase(A[st++]);
+    }
+}
+signed main() {
+    khaled
+    cin >> n;
+    cin >> q;
+    for (int i = 0; i < n; i++) {
+        cin >> A[i];
+        comp[i] = A[i];
+    }
+    CompSize = n;
+    for (int i = 0; i < q; i++) {
+        char ch;
+        cin >> ch;
+        int x, y;
+        cin >> x >> y;
+        if (ch == '2') {
+            qs[nq] = x;
+            qe[nq] = y;
+            qi[nq] = nq;
+            qt[nq] = tim;
+            nq++;
+        } else {
+            tim++;
+            old[tim] = A[x];
+            New[tim] = y;
+            upIdx[tim] = x;
+            A[x] = y;
+            comp[CompSize++] = y;
+        }
+    }
+    compress();
+    BlockSize = ceil(pow(n, 2.0 / 3.0));
+    sort(qi,qi + nq , [](int a,int b)->int{
+        int BsA, BeA,BsB,BeB;
+        BsA = qs[a]/BlockSize;
+        BeA = qe[a]/BlockSize;
+        BsB = qs[b]/BlockSize;
+        BeB = qe[b]/BlockSize;
+        return tie(BsA,BeA,qt[a]) < tie(BsB,BeB,qt[b]);
+    });
+    for(int i=0;i<nq;i++){
+        update(qi[i]);
+        ans[qi[i]] = cnt;
+    }
+    for(int i=0;i<nq;i++){
+        cout<<ans[i]<<line;
+    }
+}
+---- mo on trees with upd ----
+int n,q;
+const int K = 18;
+int values[N],St[N],En[N],LinearTree[N],depth[N],parent[N],UP[K][N],qs[N],qe[N],qi[N],qlca[N],freq[N],comp[N],qt[N],Timer,en,st,nw[N],old[N],upIdx[N],nq,tim,CompSize;
+vector<int>adj[N];
+void dfs(int node,int par){
+    parent[node] = par;
+    depth[node] = (node == 0 ? 0 : depth[par] + 1);
+    LinearTree[St[node] = Timer] = node;
+    Timer++;
+    for(auto &val:adj[node]){
+        if(val == par)continue;
+        dfs(val,node);
+    }
+    LinearTree[En[node] = Timer] = node;
+    Timer++;
+}
+void build(){
+    for(int i=0;i<n;i++){
+        UP[0][i] = parent[i];
+    }
+    for(int i = 1 ;i < K;i++){
+        for(int j=0;j<n;j++){
+            UP[i][j] = UP[i-1][UP[i-1][j]];
+        }
+    }
+}
+int walk(int node,int kth){
+    for(int i = 0;i<K;i++){
+        if(kth & (1<<i)){
+            node = UP[i][node];
+        }
+    }
+    return node;
+}
+int Lca(int a,int b){
+    if(depth[a] < depth[b])swap(a,b);
+    a = walk(a,depth[a] - depth[b]);
+    if(a == b)return a;
+    for(int i = K - 1 ;i >= 0 ;i--){
+        if(UP[i][a] != UP[i][b]){
+            a = UP[i][a];
+            b = UP[i][b];
+        }
+    }
+    return parent[a];
+}
+int BlockSize,cnt,res[N];
+void add(int value){
+    cnt += !freq[value]++;
+}
+void remove(int value){
+    cnt -= !--freq[value];
+}
+bool vis[N];
+void upd(int MoIdx){
+    vis[LinearTree[MoIdx]] ^= true;
+    if(vis[LinearTree[MoIdx]])add(values[LinearTree[MoIdx]]);
+    else remove(values[LinearTree[MoIdx]]);
+}
+int MoLeft = 0 , MoRight = -1;
+bool in(int a,int l,int r){
+    return a >= l && a <= r;
+}
+void update(int qId) {
+    while (tim < qt[qId]) {
+        tim++;
+        bool f1 = in(St[upIdx[tim]], MoLeft, MoRight);
+        bool f2 = in(En[upIdx[tim]], MoLeft, MoRight);
+        if (f1 && !f2 || f2 && !f1) {
+            remove(old[tim]);
+            add(nw[tim]);
+        }
+        values[upIdx[tim]] = nw[tim];
+    }
+    while (tim > qt[qId]) {
+        bool f1 = in(St[upIdx[tim]], MoLeft, MoRight);
+        bool f2 = in(En[upIdx[tim]], MoLeft, MoRight);
+        if (f1 && !f2 || f2 && !f1) {
+            remove(nw[tim]);
+            add(old[tim]);
+        }
+        values[upIdx[tim]] = old[tim];
+        tim--;
+    }
+    while (MoRight < qe[qId]) upd(++MoRight);
+    while (MoLeft > qs[qId]) upd(--MoLeft);
+    while (MoRight > qe[qId]) upd(MoRight--);
+    while (MoLeft < qs[qId]) upd(MoLeft++);
+}
+
+signed main() {
+    khaled
+    cin>>n>>q;
+    for(int i=0;i<n;i++)cin>>values[i],comp[i] = values[i];
+    for(int i=0;i<n-1;i++){
+        int l,r;cin>>l>>r;
+        l--,r--;
+        adj[l].emplace_back(r);
+        adj[r].emplace_back(l);
+    }
+    CompSize = n;
+    dfs(0,0);build();
+    for(int i=0;i<q;i++){
+        int type;
+        cin>>type;
+        if(type == 1) {
+            int u, v;
+            cin >> u >> v;
+            u--, v--;
+            if (St[u] > St[v])swap(u, v);
+            int s, e, L = Lca(u, v);
+            if (L == u) {
+                s = St[u] + 1;
+            } else
+                s = En[u];
+            e = St[v];
+            qs[nq] = s;
+            qe[nq] = e;
+            qi[nq] = nq;
+            qlca[nq] = L;
+            qt[nq] = tim;
+            nq++;
+        }else{
+            int u,v;cin>>u>>v;
+            tim++;
+            u--;
+            old[tim] = values[u];
+            nw[tim] = v;
+            values[u] = v;
+            upIdx[tim] = u;
+            comp[CompSize++] = v;
+        }
+    }
+    BlockSize = ceil(pow(n,2.0/3.0) + 1);
+    sort(comp , comp + CompSize);
+    CompSize = unique(comp , comp + CompSize) - comp;
+    for(int i=0;i<n;i++){
+        values[i] = lower_bound(comp , comp + CompSize,values[i]) - comp;
+    }
+    for(int i = 1;i<=tim;i++){
+        old[i] = lower_bound(comp , comp + CompSize, old[i]) - comp ;
+        nw[i] = lower_bound(comp , comp + CompSize , nw[i]) - comp;
+    }
+    sort(qi,qi + nq , [](int a,int b) -> int{
+        int bsa = qs[a] / BlockSize;
+        int bea = qe[a] / BlockSize;
+        int bsb = qs[b] / BlockSize;
+        int beb = qe[b] / BlockSize;
+        return tie(bsa,bea,qt[a]) < tie(bsb,beb,qt[b]);
+    });
+    for(int i=0;i<nq;i++){
+        update(qi[i]);
+        add(values[qlca[qi[i]]]);
+        res[qi[i]] = cnt;
+        remove(values[qlca[qi[i]]]);
+    }
+    for(int i=0;i<nq;i++){
+        cout<<res[i]<<line;
+    }
+}
+
+---------------------------------------------------------------------------------------------------------
+-----------------------------------ordered set ----------------------------------------------------------
+#include <ext/pb_ds/assoc_container.hpp> // Common file
+#include <ext/pb_ds/tree_policy.hpp> // Including tree_order_statistics_node_update
+using namespace __gnu_pbds;
+template<class T> using ordered_set = tree<T, null_type , less_equal<T> , rb_tree_tag , tree_order_statistics_node_update> ;
+
+struct ordered__set{
+
+	ordered_set< int > se ;
+	void erase( int val ){  
+		if( se.size() == 0 || *se.find_by_order( se.size() - 1 ) < val || *se.lower_bound( val - 1 ) != val  ) return ;
+		se.erase( se.lower_bound( --val ) ) ; 
+	}
+	int lw_bound( int val ){ // log --> return index ;
+		if( se.size() == 0 || *se.find_by_order( se.size() - 1 ) < val  ) return -1;
+		return se.order_of_key( *se.lower_bound( --val ) ) ;
+	}
+	int up_bound( int val ){ return  lw_bound( val + 1ll ) ; }
+	void insert( int val ){ se.insert( val ); }
+        int operator[](int idx) { return *se.find_by_order( idx ) ;}
+	int size( ){ return se.size(); }
+	void clr(  ){ se.clear() ; } 
+}
+--------------------------------------------------------------------------------------------------------------
+---------------------------- 2d prefix sum -------------------------------------------------------------------
+const int siz = 1000;
+int pre[siz + 1][siz + 1];
+int arr[siz + 1][siz + 1];
+void build() {
+    memset(pre, 0, sizeof pre);
+    for (int i = 1; i < siz + 1; i++) {
+        for (int j = 1; j < siz + 1) {
+            pre[i][j] = arr[i][j];
+            pre[i][j] += pre[i - 1][j] + pre[i][j - 1] - pre[i - 1][j - 1];
+        }
+    }
+}
+int query(int from_x ,int to_x ,int from_y ,int to_y){
+    int ans = pre[to_x][to_y] - pre[from_x - 1][to_y] - pre[to_x][from_y - 1] + pre[from_x - 1][from_y - 1];
+    return ans;
+}
+---------------------------------------------------------------------------------------------------------------
+------------------------------------scc tarjan-----------------------------------------------------------------
+vector<vector<int>> adj , dag , comps;
+int comp[N] , inStack[N] , lowLink[N] , dfn[N] , deg[N];
+stack<int> st;
+int ndfn;
+void tarjan(int u){
+    dfn[u] = lowLink[u] = ndfn++;
+    inStack[u] = true;
+    st.push(u);
+    for(auto &v : adj[u]){
+        if(dfn[v] == -1){
+            tarjan(v);
+            lowLink[u] = min(lowLink[u] , lowLink[v]);
+        }else if(inStack[v]){
+            lowLink[u] = min(lowLink[u] , dfn[v]);
+        }
+    }
+    if(dfn[u] == lowLink[u]){
+        // head of component
+        int x = -1;
+        comps.emplace_back(vector<int>());
+        while(x != u){
+            x = st.top(); st.pop(); inStack[x] = 0;
+            comps.back().emplace_back(x);
+            comp[x] = (int)comps.size() - 1;
+        }
+    }
+}
+void genDag(){
+    dag.resize(comps.size());
+    for(int u = 0 ; u < adj.size() ; u++){
+        for(auto &v :adj[u]){
+            if(comp[u] != comp[v]){
+                dag[comp[u]].emplace_back(comp[v]);
+                deg[comp[v]]++;
+            }
+        }
+    }
+}
+void SCC(int n){
+    ndfn = 0;
+    comps.clear();
+    for(int i=0;i<n;i++){
+        dfn[i] = -1;
+        lowLink[i] = inStack[i] = deg[i] = 0;
+    }
+    for(int i = 0 ; i < n ; i++)
+        if(dfn[i] == -1) tarjan(i);
+    genDag();
+}
+----------------------------------------------------------------------------------------------------
+---------------------------------Segment tree ------------------------------------------------------
+---- alternating string----
+struct Node{
+    int left,right;
+    bool alter;
+    Node (int l=0,int r=0,bool a=false){
+        left = l;
+        right = r;
+        alter = a;
+    }
+    Node operator+(const Node & b){
+        Node res;
+        res.left =  left;
+        res.right = b.right;
+        res.alter = alter && b.alter && (right!=b.left);
+        return res;
+    }
+};
+struct Segment{
+    int n;
+    vector<Node>tree;
+    vector<int>lazy;
+    Segment(int _n){
+        n = _n;
+        tree.resize(n*4);
+        lazy.resize(4*n);
+    }
+    void build(int node,int nl,int nr , string &s){
+        if(nl==nr){
+            tree[node]=Node(s[nl]-'0',s[nl]-'0',true);
+            return;
+        }
+        int mid = nl+(nr - nl)/2;
+        build(2*node+1,nl,mid , s);
+        build(2*node+2,mid+1,nr , s);
+        tree[node]=tree[2*node+1]+tree[2*node+2];
+    }
+    void prop(int node,int nl,int nr){
+        if(lazy[node]){
+            tree[node].left ^=1;
+            tree[node].right ^=1;
+            if(nl!=nr){
+                lazy[2*node+1]^=true;
+                lazy[2*node+2]^=true;
+            }
+            lazy[node]=false;
+        }
+    }
+    void update(int node,int nl,int nr,int l,int r){
+        prop(node,nl,nr);
+        if(nl>=l&&nr<=r){
+            tree[node].left ^=1;
+            tree[node].right ^=1;
+            if(nl!=nr){
+                lazy[2*node+1]^=true;
+                lazy[2*node+2]^=true;
+            }
+            return;
+        }
+        if(nr<l||nl>r)return;
+        int mid = nl+(nr-nl)/2;
+        update(2*node+1,nl,mid,l,r);
+        update(2*node+2,mid+1,nr,l,r);
+        tree[node]=tree[2*node+1]+tree[2*node+2];
+    }
+    Node query(int node,int nl,int nr,int l,int r){
+        prop(node,nl,nr);
+        if(nl>=l&&nr<=r){
+            return tree[node];
+        }
+        int mid = nl+(nr-nl)/2;
+        if(r<=mid)return query(2*node+1,nl,mid,l,r);
+        if(l>=mid+1)return query(2*node+2,mid+1,nr,l,r);
+        return query(2*node+1,nl,mid,l,r)+ query(2*node+2,mid+1,nr,l,r);
+    }
+};
+---- kth element presestent seg ----
+extern struct node* Empty;
+
+struct node{
+    int sum;
+    node*lf,*rt;
+    node(){
+        sum=0;
+        lf =rt = this;
+    }
+    node(int value,node* lf = Empty, node* rt = Empty):lf(lf) , rt(rt) , sum(value){}
+};
+
+node*Empty = new node();
+
+node* roots[N];
+
+node* insert(int val,node*cur,int ns=-1e9,int ne=1e9){
+    if(val < ns or val > ne)return cur;
+    if(ne == ns){
+        return new node(cur->sum+1);
+    }
+    int mid=ns+(ne-ns)/2;
+    node*LF = insert(val, cur->lf,ns,mid);
+    node*RT = insert(val,cur->rt,mid+1,ne);
+    return new node(LF->sum+RT->sum,LF,RT);
+}
+
+int query(int k , node *en, node*stm1, int ns=-1e9, int ne=1e9){
+    if(ns==ne)return ns;
+    int LeftSz=en->lf->sum-stm1->lf->sum;
+    int mid=ns+(ne-ns)/2;
+    if(k<=LeftSz)return query(k,en->lf,stm1->lf,ns,mid);
+    return query(k-LeftSz,en->rt,stm1->rt,mid+1,ne);
+}
+signed main() {
+    khaled
+    roots[0]=Empty;
+    int m,xx;
+    int n;
+    cin>>n>>m;
+    for(int i=1;i<=n;i++){
+        cin>>xx;
+        roots[i]= insert(xx,roots[i-1]);
+    }
+    while(m--){
+        int l,r,k;
+        cin>>l>>r>>k;
+        cout<<query(k,roots[r],roots[l-1])<<line;
+    }
+}
+---- sub array sum ----
+struct Node {
+    // note: you don't consider empty subarray so if you want max(answer , 0)
+    ll left, right, max, sum;
+
+    Node(ll a = -inf, ll b = -inf, ll c = -inf, ll d = -inf) {
+        sum = a, left = b, right = c, max = d;
+    }
+
+    Node operator+(const Node &a) {
+        Node res;
+        res.sum = a.sum + sum;
+        res.left = std::max(left, sum + a.left);
+        res.right = std::max(a.right, a.sum + right);
+        res.max = std::max({max, a.max, right + a.left});
+        return res;
+    }
+
+};
+struct SegmentTree {
+    vector<Node> tree;
+    vector<ll> lazy;
+    int n;
+
+    SegmentTree(int _n) {
+        n = _n;
+        tree.resize(4 * n);
+        lazy.resize(4 * n, -inf);
+    }
+
+    void build(int node, int nl, int nr, vector<ll> &v) {
+
+        if (nl == nr) {
+            tree[node] = Node(v[nl], v[nl], v[nl], v[nl]);
+            return;
+        }
+        int mid = nl + (nr - nl) / 2;
+        build(2 * node + 1, nl, mid, v);
+        build(2 * node + 2, mid + 1, nr, v);
+        tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
+    }
+
+    void prop(int node, int nl, int nr) {
+        if (lazy[node] != -inf) {
+            ll val = 1LL * (nr - nl + 1) * lazy[node];
+            tree[node] = Node(val, val, val, val);
+            if (nl != nr) {
+                lazy[node * 2 + 1] = lazy[node];
+                lazy[node * 2 + 2] = lazy[node];
+            }
+            lazy[node] = -inf;
+        }
+    }
+
+    void update(int node, int nl, int nr, int l, int r, ll newValue) {
+        prop(node, nl, nr);
+        if (nl >= l && nr <= r) {
+            ll val = 1LL * (nr - nl + 1) * newValue;
+            tree[node] = Node(val, val, val, val);
+            if (nl != nr) {
+                lazy[node * 2 + 1] = newValue;
+                lazy[node * 2 + 2] = newValue;
+            }
+            return;
+        }
+        if (nl > r || nr < l)return;
+        int mid = nl + (nr - nl) / 2;
+        update(2 * node + 1, nl, mid, l, r, newValue);
+        update(2 * node + 2, mid + 1, nr, l, r, newValue);
+        tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
+    }
+
+    Node query(int node, int nl, int nr, int l, int r) {
+        prop(node, nl, nr);
+        if (nl >= l && nr <= r)return tree[node];
+        if (nl > r || nr < l)return Node();
+        int mid = nl + (nr - nl) / 2;
+        return query(2 * node + 1, nl, mid, l, r) + query(2 * node + 2, mid + 1, nr, l, r);
+    }
+};
+---- min and mod seg beats ----
+struct SegmentTreeBeats{
+    vector<int>tsum,tmax;
+    //one based seg
+    //build by update index with it's value
+    //update set index val to x
+    //update take index val % x
+    SegmentTreeBeats(int n){
+        tsum.resize(4*n);
+        tmax.resize(4*n);
+    }
+    void update_mod(int l, int r, long long v, int t = 1, int tl = 1, int tr = N) {
+        if (r < tl || tr < l || tmax[t] < v) {
+            return;
+        } else if (tl == tr) {
+            int val = tmax[t] % v;
+            tsum[t] = tmax[t] = val;
+            return;
+        }
+
+        int tm = (tl + tr) / 2;
+        update_mod(l, r, v, t * 2, tl, tm);
+        update_mod(l, r, v, t * 2 + 1, tm + 1, tr);
+        tsum[t] = tsum[t * 2] + tsum[t * 2 + 1];
+        tmax[t] = max(tmax[t * 2], tmax[t * 2 + 1]);
+    }
+
+    void update_set(int i, long long v, int t = 1, int tl = 1, int tr = N) {
+        if (tl == tr) {
+            tsum[t] = tmax[t] = v;
+            return;
+        }
+
+        int tm = (tl + tr) / 2;
+        if (i <= tm) {
+            update_set(i, v, t * 2, tl, tm);
+        } else {
+            update_set(i, v, t * 2 + 1, tm + 1, tr);
+        }
+        tsum[t] = tsum[t * 2] + tsum[t * 2 + 1];
+        tmax[t] = max(tmax[t * 2], tmax[t * 2 + 1]);
+    }
+
+    long long query(int l, int r, int t = 1, int tl = 1, int tr = N) {
+        if (r < tl || tr < l) {
+            return 0;
+        } else if (l <= tl && tr <= r) {
+            return tsum[t];
+        }
+
+        int tm = (tl + tr) / 2;
+        return query(l, r, t * 2, tl, tm) + query(l, r, t * 2 + 1, tm + 1, tr);
+    }
+};
+------------------------------------------------------------------------------------------------------------
+-------------------------------------sparse table-----------------------------------------------------------
+---- struct ----
+struct SparseTable {
+    vector<vector<int> > sp;
+    vector<int> LOG;
+    vector<int> arr;
+    int n, LG;
+    SparseTable(vector<int> &_arr) : arr(_arr) {
+        n = (int)_arr.size();
+ 
+        LOG = vector<int>(n + 1);
+        LOG[0] = LOG[1] = 0;
+ 
+        for (int i = 2; i <= n; ++i) {
+            LOG[i] += LOG[i - 1] + !(i & (i - 1));
+        }
+ 
+        LG = LOG[n];
+        sp = vector<vector<int> >(LG + 1, vector<int>(n));
+ 
+        build();
+    }
+ 
+    int f(int lfV, int rtV) {
+        return min(lfV, rtV);
+    }
+ 
+    void build() { // O( n log(n) )
+        sp[0] = arr;
+ 
+        for (int lvl = 1; lvl <= LG; ++lvl) {
+            for (int j = 0; j + (1 << lvl) <= n; ++j) {
+                sp[lvl][j] = f(sp[lvl - 1][j], sp[lvl - 1][j + (1 << (lvl - 1))]);
+            }
+        }
+    }
+ 
+    int Query1(int l, int r) { // O( 1 )
+        int lg = LOG[r - l + 1];
+ 
+        return f(sp[lg][l], sp[lg][r - (1 << lg) + 1]);
+    }
+ 
+    int Query2(int l, int r) { // O( LogN )
+        int lg = LOG[n];
+        int ans = 0;
+ 
+        for (int j = lg; ~j; --j) {
+            if ((1 << j) <= (r - l + 1)) {
+                ans = f(ans, sp[j][l]);
+                l += (1 << j);
+            }
+        }
+ 
+        return ans;
+    }
+};
+----  sp get index ----
+const int k = 20;
+int sp1[k][N];//max
+int sp2[k][N];//min
+void build(int n,vector<int>&v){
+    for(int i = 1;i<k;i++){
+        for(int j = 0;j+(1<<i)<=n;j++){
+            if(v[sp1[i-1][j]]>v[sp1[i-1][j+(1<<(i-1))]]){
+                sp1[i][j]=sp1[i-1][j];
+            }else{
+                sp1[i][j]=sp1[i-1][j+(1<<(i-1))];
+            }
+            if(v[sp2[i-1][j]]>v[sp2[i-1][j+(1<<(i-1))]]){
+                sp2[i][j]=sp2[i-1][j+(1<<(i-1))];
+            }else{
+                sp2[i][j]=sp2[i-1][j];
+            }
+        }
+    }
+}
+int query1(int l,int r,vector<int>&v){
+    int lg = log2_floor(r-l+1);
+    if(v[sp1[lg][l]]>v[sp1[lg][r-(1<<lg)+1]])return sp1[lg][l];
+    return sp1[lg][r-(1<<lg)+1];
+}
+int query2(int l,int r,vector<int>&v){
+    int lg = log2_floor(r-l+1);
+    if(v[sp2[lg][l]]>v[sp2[lg][r-(1<<lg)+1]])return sp2[lg][r-(1<<lg)+1];
+    return sp2[lg][l];
+}
+---- 2d sp ----
+const int M = 1e3 + 1;
+const int LOG = 10;
+int f[LOG][LOG][M][M];
+int grid[M][M];
+int n, m;
+/*
+ 2d sparse table f[log(n)][log(m)][N][M] --> take m * n * log(n) * log(m) memory and time and o(1) for quering
+ it can be used for min , max , gcd , lcm , and , or ,... any non mutable function
+ it support no updates.
+ note it written like that to be cache friendly don't change the dimesions order.
+ if your problem have N = 5000 change the LOG make it 13 
+ if your problem have N * M <= 1e6 then you have to use vectors instead of arrays but avoid that as possible
+*/
+int combine(int a, int b){
+    return max(a , b);
+}
+void build() {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            f[0][0][i][j] = grid[i][j];
+        }
+    }
+    for (int k1 = 0; k1 < LOG; k1++) {
+        for (int k2 = 0; k2 < LOG; k2++) {
+            if (k1 == 0 && k2 == 0) continue;
+            for (int i = 0; i + (1 << k1) <= n; i++) {
+                for (int j = 0; j + (1 << k2) <= m; j++) {
+                    if (k1 > 0) {
+                        f[k1][k2][i][j] = combine(f[k1 - 1][k2][i][j], f[k1 - 1][k2][i + (1 << (k1 - 1))][j]);
+                    }
+                    if (k2 > 0) {
+                        f[k1][k2][i][j] = combine(f[k1][k2 - 1][i][j], f[k1][k2 - 1][i][j + (1 << (k2 - 1))]);
+                    }
+                    if (k1 > 0 && k2 > 0) {
+                        f[k1][k2][i][j] = combine(combine(
+                                f[k1 - 1][k2 - 1][i][j],
+                                f[k1 - 1][k2 - 1][i + (1 << (k1 - 1))][j]), combine(
+                                f[k1 - 1][k2 - 1][i][j + (1 << (k2 - 1))],
+                                f[k1 - 1][k2 - 1][i + (1 << (k1 - 1))][j + (1 << (k2 - 1))])
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+int query(int l, int d, int r, int u) {
+    int k1 = std::__lg(r - l + 1);
+    int k2 = std::__lg(u - d + 1);
+    return combine(combine(
+                           f[k1][k2][l][d],
+                           f[k1][k2][r - (1 << k1) + 1][d]),
+                   combine(
+                           f[k1][k2][l][u - (1 << k2) + 1],
+                           f[k1][k2][r - (1 << k1) + 1][u - (1 << k2) + 1])
+    );
+}
+-----------------------------------------------------------------------------------------------------------
+------------------------------------tree-------------------------------------------------------------------
+----diameter----
+pair<int, int> calc(int u, int par = -1) {
+    int diam = 0;
+    int mxHeights[3] = {-1, -1, -1};    // keep 2 highest trees
+    for (auto &v: adj[u])
+        if (v != par) {
+            auto p = calc(v, u);
+            diam = max(diam, p.first);
+            mxHeights[0] = p.second + 1;
+            sort(mxHeights, mxHeights + 3);
+        }
+    for (int i = 0; i < 3; i++)
+        if (mxHeights[i] == -1)
+            mxHeights[i] = 0;
+    diam = max(diam, mxHeights[1] + mxHeights[2]);
+    return {diam, mxHeights[2]};
+}
+int diameter(int root){
+    return calc(root).first;
+}
+---- edge classification ----
+int bridges,lvl [N],dp [N];
+vector<int> adj [N];
+void dfs (int vertex) {
+    dp[vertex] = 0;
+    for (int nxt : adj[vertex]) {
+        if (lvl[nxt] == 0) { 
+            //parent child edge
+            lvl[nxt] = lvl[vertex] + 1;
+            dfs(nxt);
+            dp[vertex] += dp[nxt];
+        } else if (lvl[nxt] < lvl[vertex]) {
+            //backward edge [vertex,nxt]
+            dp[vertex]++;
+        } else if (lvl[nxt] > lvl[vertex]) {
+            //forward edge [vertex,nxt]
+            dp[vertex]--;
+        }
+    }
+//  the parent edge isn't a back-edge, subtract 1 to compensate 
+    dp[vertex]--;
+    if (lvl[vertex] > 1 && dp[vertex] == 0) {
+        bridges++;
+    }
+}
+---- lca euler ----
+vector<int> adj[N];
+vector<int> euler_tour;
+int n;
+int in[4 * N] , Timer = 0;
+void dfs(int u = 0 , int p = 0){
+    in[u] = Timer++;
+    euler_tour.emplace_back(u);
+    for(auto &v : adj[u]) if(v != p){
+            dfs(v , u);
+            euler_tour.emplace_back(u);
+            Timer++;
+        }
+}
+struct SparseTable {
+    vector<int> log;
+    vector<vector<pair<int, int>>> spt;
+    void init(int _n) {
+        int k = 20;
+        spt = vector<vector<pair<int, int>>>(k, vector<pair<int, int>>(_n));
+        for (int i = 0; i < _n; i++) {
+            spt[0][i] = { in[euler_tour[i]] , euler_tour[i] };
+        }
+        for (int j = 1; 1 << j <= _n; j++) {
+            for (int i = 0; i + (1 << j) - 1 < _n; i++) {
+                spt[j][i] = merge(spt[j - 1][i], spt[j - 1][i + (1 << (j - 1))]);
+            }
+        }
+    }
+    pair<int, int> merge(pair<int, int> &x, pair<int, int> &y) {
+        if(x.first < y.first) return x;
+        return y;
+    }
+    pair<int, int> query(int i, int j) {
+        int len = j - i + 1;
+        int k = log2_floor(len);
+        return merge(spt[k][i], spt[k][j - (1 << k) + 1]);
+    }
+    int LCA(int i , int j){
+        if(in[i] > in[j]) swap(i , j);
+        return query(in[i] , in[j]).second;
+    }
+};
+SparseTable spt;
+void build(){
+    dfs();
+    spt.init(Timer);
+}
+---- lca log----
+const int Log = 21;
+int up[N][Log],depth[N],parent[N],root = 0;
+vector<int>adj[N];
+void rooting(){
+    queue<pair<int,int>>q;
+    q.push({root,-1});
+    parent[root] = root;
+    while(!q.empty()){
+        int node = q.front().first;
+        int par = q.front().second;
+        q.pop();
+        for(auto &val:adj[node]){
+            if(val==par)continue;
+            parent[val] = node;
+            q.push({val,node});
+        }
+    }
+}
+void MarkDepth(int node,int par,int Dist = 0) {
+    depth[node] = Dist;
+    for (auto &val: adj[node]) {
+        if (val == par)continue;
+        MarkDepth(val, node,  Dist+ 1);
+    }
+}
+void build(int n) {
+    MarkDepth(root, -1);
+    for (auto &val: up)for (auto &i: val)i = -1;
+    parent[root] = root;// to handle non-existing edges
+    for (int i = 0; i < n; i++)up[i][0] = parent[i];
+    for (int i = 1; i < Log; i++) {
+        for (int j = 0; j < n; j++) {
+            up[j][i] = up[up[j][i - 1]][i - 1];
+        }
+    }
+}
+int walk(int node,int k) {
+    if (depth[node] < k)return -1;
+    for (int i = 0; i < Log; i++) {
+        if (k & (1 << i))node = up[node][i];
+    }
+    return node;
+}
+int LCA(int a,int b){
+    if(depth[a]<depth[b])swap(a,b);
+    a = walk(a,depth[a] - depth[b]);
+    if(a==b)return a;
+    for(int i = Log - 1;i>=0;i--){
+        if(up[a][i] != up[b][i]){
+            a = up[a][i];
+            b = up[b][i];
+        }
+    }
+    assert(parent[a]==parent[b]);
+    return parent[a];
+}
+int dist(int a,int b){
+    return depth[a] + depth[b] - 2 * depth[LCA(a,b)];
+}
+void init(){
+    for(int i=0;i<n;i++)adj[i].clear();
+}
+--------------------------------------------------------------------------------------------------------
+------------------ Trie---------------------------------------------------------------------------------
+---- string----
+struct Trie {
+	Trie* arr[26] = {nullptr};
+	int lst = 0;
+	int st = 0;
+
+	Trie() {
+		for (int i = 0; i < 26; ++i) {
+			arr[i] = nullptr;
+		}
+		lst = 0;
+		st = 0;
+	}
+
+	~Trie() {
+		for (int i = 0; i < 26; ++i) {
+			if (arr[i] != nullptr) {
+				delete arr[i];
+				arr[i] = nullptr;
+			}
+		}
+	}
+
+	void insert(const string &word, int idx = 0) {
+		if (idx == word.size()) {
+			lst++;
+			st++;
+			return;
+		}
+		int ch = word[idx] - 'a';
+		if (arr[ch] == nullptr) {
+			arr[ch] = new Trie();
+		}
+		if(idx!=0)st++;
+		arr[ch]->insert(word, idx + 1);
+	}
+
+	int count_equal(const string &word, int idx = 0) const {
+		if (idx == word.size()) {
+			return lst;
+		}
+		int ch = word[idx] - 'a';
+		if (arr[ch] == nullptr) {
+			return 0;
+		}
+		return arr[ch]->count_equal(word, idx + 1);
+	}
+
+	int count_prefix(const string &word, int idx = 0) const {
+		if (idx == word.size()) {
+			return st;
+		}
+		int ch = word[idx] - 'a';
+		if (arr[ch] == nullptr) {
+			return 0;
+		}
+		return arr[ch]->count_prefix(word, idx + 1);
+	}
+
+	bool erase(const string &word, int idx = 0) {
+		if (idx == word.size()) {
+			lst--;
+			st--;
+			return true;
+		}
+		int ch = word[idx] - 'a';
+		if (arr[ch] == nullptr) {
+			return false;
+		}
+		if (!arr[ch]->erase(word, idx + 1)) {
+			return false;
+		}
+		if(idx!=0) st--;
+		if (arr[ch]->st == 0) {
+			delete arr[ch];
+			arr[ch] = nullptr;
+		}
+		return true;
+	}
+	bool GetProperPrefixTo(const string &s , string &temp , vector<string>&ans , int idx = 0){
+		if(s.size() > idx){
+			int ch = s[idx] - 'a';
+			if(arr[ch] == nullptr)return false;
+			temp += s[idx];
+			return arr[ch]->GetProperPrefixTo(s , temp,ans, idx + 1);
+		}else{
+			for(int i = 0;idx != s.size() && i<lst;i++){
+				ans.emplace_back(temp);
+				break;
+			}
+			for(int i = 0;i<26;i++){
+				if(arr[i]){
+					temp += (char)(i + 'a');
+					bool x = arr[i]->GetProperPrefixTo(s , temp ,ans, idx + 1);
+					temp.pop_back();
+				}
+			}
+			return true;
+		}
+	}
+};
+----bit----
+struct Trie{
+	Trie* arr[2];
+	int freq;
+	Trie(){
+		freq = 0;
+		for(auto &val:arr){
+			val = nullptr;
+		}
+	}
+	~Trie(){
+		if(arr[0])delete arr[0];
+		if(arr[1])delete arr[1];
+	}
+	void insert(ll x, int idx = 40) {
+		if (idx == -1) {
+			freq++;
+			return;
+		}
+		bool temp = ((x & (1LL << idx)));
+		if (arr[temp] == nullptr) {
+			arr[temp] = new Trie();
+		}
+    	freq++; // Increment freq only if a node is traversed
+    	arr[temp]->insert(x, idx - 1);
+	}
+
+	bool erase(ll x, int idx = 40) {
+		if (idx == -1) {
+			freq--;
+			return true;
+		}
+		bool temp = ((x & (1LL << idx)));
+		if (arr[temp] == nullptr) return false;
+		if (arr[temp]->erase(x, idx - 1)) {
+		    freq--; // Decrement freq only if a node is traversed
+		    if (arr[temp]->freq == 0) {
+	        	delete arr[temp];
+	        	arr[temp] = nullptr;
+	        }
+		    return true;
+		}
+		return false;
+	}
+
+	ll Get(ll x , int idx = 40){
+		if(idx == -1)return 0;
+		bool temp = ((x & (1LL<<idx)));
+		if(arr[!temp] != nullptr)return arr[!temp]->Get(x , idx - 1) | (1LL<<idx);
+		else{
+			assert(arr[temp]);
+			return arr[temp]->Get(x , idx - 1);
+		}
+	}
+};
+----------------------------------------------------------------------------------------------
+--------------------------templates-----------------------------------------------------------
+//#pragma GCC optimize("O3")
+//#pragma GCC optimize("Ofast,unroll-loops")
+//#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
+//#pragma GCC target("avx,avx2,fma")
+#include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp> // Common file
+#include <ext/pb_ds/tree_policy.hpp> // Including tree_order_statistics_node_update
+#include <tr2/dynamic_bitset>
+using namespace __gnu_pbds; // for ordered set
+using namespace std; // global name space
+using namespace tr2; // for dynamic_bitset<>
+//#define int long long
+//#define double long double
+#define line '\n'
+typedef long long ll;
+#define khaled ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+template<typename T>
+using ordered_set=tree<T,null_type,less_equal<T>,rb_tree_tag,tree_order_statistics_node_update>;
+bool valid(long long i,long long j,long long n,long long m){return i>=0&&i<n&&j>=0&&j<m;}
+long long mul(long long x,long long y,const long long&mod){return ((x%mod)*(y%mod))%mod;}
+long long add(long long x,long long y,const long long&mod){return (((x%mod)+(y%mod))%mod+mod)%mod;}
+int SafeMul(int a,int b,int m){if(b==0)return 0;int res = SafeMul(a,b/2,m);res = add(res,res,m);if(b&1)return add(res,a,m);else return res;}
+long long fast_power(long long base,long long power,const long long &m=INT64_MAX){if (power == 1 || power == 0)return base * power + (!power);long long res = (fast_power(base, power / 2, m) % m) % m;if (power & 1)return mul(base,mul(res,res,m),m);else return mul(res,res,m);}
+int log2_floor(long long i) {return i ? __builtin_clzll(1) - __builtin_clzll(i) : 0;}
+int power_of_2(int n){ return __builtin_popcountll(n)==1;}
+bool line_checking(int a1,int b1,int a2,int b2,int a3,int b3) { return (b2-b1)*(a2-a3)==(b2-b3)*(a2-a1); }
+pair<int,int> rotate(int i,int j,int n){ return make_pair(j,n-1-i); }
+const int N = 2e5+5;
+const int mod=1e9+7;
+//const int mod = 998244353;
+const int inf=1e9;
+const double pi=3.14159265350979323846,eps=1e-10;
+/*==============================================  KHALWSH  ==============================================*/
+
+signed main() {
+    khaled
+
+}
