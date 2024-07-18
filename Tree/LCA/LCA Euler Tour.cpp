@@ -41,6 +41,10 @@ struct SparseTable {
     }
 };
 SparseTable spt;
+void init(){
+    Timer = 0;
+    euler_tour.clear()
+}
 void build(){
     dfs();
     spt.init(Timer);
