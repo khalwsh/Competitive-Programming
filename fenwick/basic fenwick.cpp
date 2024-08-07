@@ -1,19 +1,34 @@
+template<class T>
 struct Fenwick{
     int n;
-    vector<int>tree;
+    vector<T>tree;
+    int N = 1;
     void init(int _n){
         n=_n;
         tree.resize(this->n);
+        N = log2_floor(n) + 1;
     }
-    void add(int pos,int value){
+    void add(int pos,T value){
         for(int i=pos+1;i<=n;i+=i&-i)tree[i-1]+=value;
     }
-    int get(int pos) {
-        int sum = 0;
+    T get(int pos) {
+        T sum = 0;
         for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
         return sum;
     }
-    int query(int l,int r){
+    T query(int l,int r){
         return get(r)-get(l-1);//send zero base
+    }
+    int lower_bound(T t){
+        T sum = 0;
+        int pos = 0;
+        for(int i = N; i >= 0; i--){
+            int next_pos = pos + (1 << i);
+            if(next_pos <= n && sum + tree[next_pos - 1] < t){
+                sum += tree[next_pos - 1];
+                pos = next_pos;
+            }
+        }
+        return pos; // zero-based index
     }
 };

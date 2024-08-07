@@ -16,6 +16,7 @@ void factorial() {
     }
 }
 int Ncr(int n, int r) {
+    if(r > n)return 0;
     ll ans = ((fact[n] * FInv[r])
                % mod * FInv[n - r])
               % mod;
