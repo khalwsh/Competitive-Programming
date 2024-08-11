@@ -22,8 +22,12 @@ void countingSort(int maxGroup) {
 }
 
 void radixSort() {
-    int maxGroup = max(n, 256);
+    int maxGroup = max(n, 256);  // Initial max group value for radix sort
+
+    // Sort by the second key (group[i + curLen])
     countingSort(maxGroup);
+
+    // Sort by the first key (group[i])
     curLen = 0;
     countingSort(maxGroup);
 }
@@ -50,4 +54,17 @@ void build() {
         }
         if (NewGroup[n - 1] == n - 1) break;
     }
+}
+vector<int>lcp;
+void BuildLcp() {
+    lcp.resize(n);
+    int k = 0;
+    for (int i = 0; i < n - 1; i++) {
+        int pi = group[i] - 1; // Corrected index for accessing the previous suffix
+        int j = suf[pi];
+        while (s[j + k] == s[i + k]) k++;
+        lcp[pi] = k; // Store the LCP value at the correct index
+        if (k > 0) k--;
+    }
+
 }
