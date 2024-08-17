@@ -197,4 +197,14 @@ struct suffix_array {
 
         return str[a + common] < str[b + common] ? -1 : (str[a + common] == str[b + common] ? 0 : 1);
     }
+    int compare(int i1 , int j1 , int i2 , int j2) {
+        array<int , 2>a{i1 , j1} , b{i2 , j2};
+        int shorter = min(a[1] - a[0], b[1] - b[0]);
+        int comp = compare(a[0], b[0], ++shorter);
+
+        if (comp != 0)
+            return comp;
+        if(a[1] - a[0] == b[1] - b[0])return 0;
+        return a[1] - a[0] < b[1] - b[0] ? -1 : 1;
+    }
 };
