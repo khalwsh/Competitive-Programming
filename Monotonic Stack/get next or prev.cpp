@@ -1,6 +1,6 @@
 vector<int> getNxtMin(vector<int> &arr) {
     stack<int> st;
-    vector<int> res(arr.size(), arr.size());
+    vector<int> res(arr.size(), -1);
     for (int i = 0; i < arr.size(); i++) {
         while (!st.empty() && arr[st.top()] > arr[i]) {
             res[st.top()] = i;
@@ -26,7 +26,7 @@ vector<int> getPrevMin(vector<int> &arr) {
  
 vector<int> getNxtMax(vector<int> &arr) {
     stack<int> st;
-    vector<int> res(arr.size(), arr.size());
+    vector<int> res(arr.size(), -1);
     for (int i = 0; i < arr.size(); i++) {
         while (!st.empty() && arr[st.top()] < arr[i]) {
             res[st.top()] = i;

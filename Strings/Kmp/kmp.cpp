@@ -6,6 +6,8 @@ struct KMP {
     vector<int> failure;
 
     void build(const string &s) {
+        // failure[i] = length of the longest proper prefix of s[0..i] that is 
+        // also a suffix of this substring
         int n = (int) s.size();
         if (failure.size() <= s.size())failure.clear(), failure.resize(n);
         for (int i = 1; i < n; i++) {
