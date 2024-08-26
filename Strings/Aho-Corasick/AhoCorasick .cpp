@@ -13,7 +13,7 @@ struct AhoCorasick {
         }
      */
     int N, P;
-    const int A = 26;
+    const int A = 128;
     vector <vector <int>> next;
     vector <int> link, out_link;
     vector <vector <int>> out;
@@ -26,7 +26,7 @@ struct AhoCorasick {
         return N++;
     }
     inline int get (char c) {
-        return c - 'a';
+        return c;
     }
     int add_pattern (const string &T) {
         int u = 0;
@@ -57,22 +57,22 @@ struct AhoCorasick {
         u = next[u][get(c)];
         return u;
     }
-    vector<int> FirstPos(string &text , vector<string>&patterns) {
+    vector<vector<int>> AllPos(string &text , vector<string>&patterns) {
         P = 0;
         int n = (int)patterns.size();
         map<string,int>last;
         vector<int>ans(n);
         for(int i = 0;i < patterns.size();i++) {
-            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "$";
+            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "";
             else last[patterns[i]] = i , ans[i] = i;
         }
         vector<int> len(n + 3, 0);
         for (auto &pat: patterns) {
-            if(pat == "$")P++;
+            if(pat == "")P++;
             else len[add_pattern(pat)] = (int)pat.size();
         }
         compute();
-        vector<int>res(n , 1e9);
+        vector<vector<int>>res(n);
         n = (int)text.size();
         int u = 0;
         for (int i = 0; i < n; i++) {
@@ -80,14 +80,12 @@ struct AhoCorasick {
             u = advance(u, c);
             for (int node = u; node; node = out_link[node]) {
                 for (auto PatIdx : out[node]) {
-                    res[PatIdx] = min(res[PatIdx] , i - len[PatIdx] + 1);
+                    res[PatIdx].emplace_back(i - len[PatIdx] + 1);
                 }
             }
         }
-        for(int i = 0;i < res.size();i++)res[i] = (res[i] == 1e9 ? -2 : res[i]);
-
         for(int i = 0;i < res.size();i++) {
-           res[i] = res[ans[i]];
+            res[i] = res[ans[i]];
         }
         return res;
     }
@@ -118,6 +116,40 @@ struct AhoCorasick {
                 }
             }
         }
+        for(int i = 0;i < res.size();i++) {
+            res[i] = res[ans[i]];
+        }
+        return res;
+    }
+    vector<int> FirstPos(string &text , vector<string>&patterns) {
+        P = 0;
+        int n = (int)patterns.size();
+        map<string,int>last;
+        vector<int>ans(n);
+        for(int i = 0;i < patterns.size();i++) {
+            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "";
+            else last[patterns[i]] = i , ans[i] = i;
+        }
+        vector<int> len(n + 3, 0);
+        for (auto &pat: patterns) {
+            if(pat == "")P++;
+            else len[add_pattern(pat)] = (int)pat.size();
+        }
+        compute();
+        vector<int>res(n , 1e9);
+        n = (int)text.size();
+        int u = 0;
+        for (int i = 0; i < n; i++) {
+            char c = text[i];
+            u = advance(u, c);
+            for (int node = u; node; node = out_link[node]) {
+                for (auto PatIdx : out[node]) {
+                    res[PatIdx] = min(res[PatIdx] , i - len[PatIdx] + 1);
+                }
+            }
+        }
+        for(int i = 0;i < res.size();i++)res[i] = (res[i] == 1e9 ? -2 : res[i]);
+
         for(int i = 0;i < res.size();i++) {
             res[i] = res[ans[i]];
         }

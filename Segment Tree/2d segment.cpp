@@ -1,36 +1,48 @@
-template<typename T>
-struct segTree_2d{
-    vector<vector<T>> t;
-    int n , m;
-    template<typename ContainerType>
-    void init(int n, int m , vector<vector<ContainerType>> &g){
-        this->n = n;
-        this->m = m;
-        int r = 1 , c = 1;
-        while(r < n) r *= 2;
-        while(c < m) c *= 2;
-        t = vector<vector<T>>(2 * r , vector<T>(2 * c));    
-        build(g);
-        
+/*
+    2D segment Tree
+    - Memory allocation: O(4n x 4m)
+    - range [l..r] , r: inclusive 
+    - Base: 0-index
+    
+    Function description:
+        1. upd(r , c , val): update cell (r,c) with value val
+           Time complexity: O(log(n) x log(m))
+        2. qry(lx , rx , ly , ry): find (min,max,sum,produc) of rectangle [lx...rx] x [ly...ry]
+           Time complexity: O(log(n) x log(m))
+        3. init(n , m): initial the segment tree 
+        4. build(g): build the segment tree with grid[n][m]
+           Time complexity: O(n log(n) x m log(m))
+*/
+struct Node{
+    int v;
+    Node(){ v = 0;} 
+    Node(int x){ this->v = x; } 
+    Node operator +(const Node &other) const{
+        Node res;
+        res.v = __gcd(v , other.v); // custom operator
+        return res;
     }
-    template<typename ContainerType>
-    void build_y(int vx, int lx, vector<vector<ContainerType>> &g ,int rx, int vy, int ly, int ry) {
+};
+struct segTree_2d{
+private: 
+    vector<vector<Node>> t;
+    int n , m;
+    void build_y(int vx, int lx, vector<vector<int>> &g ,int rx, int vy, int ly, int ry) {
         if (ly == ry) {
             if (lx == rx){
-                t[vx][vy] = g[lx][ly];
+                t[vx][vy] = Node(g[lx][ly]);
             }
             else{
-                t[vx][vy] = merge(t[vx*2][vy] , t[vx*2+1][vy]);
+                t[vx][vy] = t[vx*2][vy] + t[vx*2+1][vy];
             }
         } else {
             int my = (ly + ry) / 2;
             build_y(vx, lx, g, rx, vy*2, ly, my);
             build_y(vx, lx, g, rx, vy*2+1, my+1, ry);
-            t[vx][vy] = merge(t[vx][vy*2] , t[vx][vy*2+1]);
+            t[vx][vy] = t[vx][vy*2] + t[vx][vy*2+1];
         }
     }
-    template<class ContainerType>
-    void build_x(vector<vector<ContainerType>> &g , int vx, int lx, int rx) {
+    void build_x(vector<vector<int>> &g , int vx, int lx, int rx) {
         if (lx != rx) {
             int mx = (lx + rx) / 2;
             build_x(g , vx*2, lx, mx);
@@ -38,27 +50,66 @@ struct segTree_2d{
         }
         build_y(vx, lx, g, rx, 1, 0, m-1);
     }
-    T qry_y(int vx, int vy, int tly, int try_, int ly, int ry) {
+    Node qry_y(int vx, int vy, int tly, int try_, int ly, int ry) {
         if (ly > ry) 
-            return 0;
+            return Node();
         if (ly == tly && try_ == ry)
-            return t[vx][vy];
+            return Node(t[vx][vy]);
         int tmy = (tly + try_) / 2;
-        return merge(qry_y(vx, vy*2, tly, tmy, ly, min(ry, tmy))
-             , qry_y(vx, vy*2+1, tmy+1, try_, max(ly, tmy+1), ry));
+        return qry_y(vx, vy*2, tly, tmy, ly, min(ry, tmy)) + 
+               qry_y(vx, vy*2+1, tmy+1, try_, max(ly, tmy+1), ry);
     }
  
-    T qry_x(int vx, int tlx, int trx, int lx, int rx, int ly, int ry) {
+    Node qry_x(int vx, int tlx, int trx, int lx, int rx, int ly, int ry) {
         if (lx > rx)
-            return 0;
+            return Node();
         if (lx == tlx && trx == rx)
             return qry_y(vx, 1, 0, m-1, ly, ry);
         int tmx = (tlx + trx) / 2;
-        return merge(qry_x(vx*2, tlx, tmx, lx, min(rx, tmx), ly, ry)
-             , qry_x(vx*2+1, tmx+1, trx, max(lx, tmx+1), rx, ly, ry));
+        return qry_x(vx*2, tlx, tmx, lx, min(rx, tmx), ly, ry) + 
+               qry_x(vx*2+1, tmx+1, trx, max(lx, tmx+1), rx, ly, ry);
     }
-    T merge(T a , T b){ return __gcd(a , b);}
-    template<typename ContainerType>
-    void build(vector<vector<ContainerType>> &g){ build_x(g , 1 , 0 , n - 1); }
-    int qry(int x , int y , int xx , int yy){ return qry_x(1 , 0 , n - 1 , x , xx , y , yy); }
+    void upd_y(int vx, int lx, int rx, int vy, int ly, int ry, int x, int y, int nval) {
+        if (ly == ry) {
+            if (lx == rx)
+                t[vx][vy] = nval;
+            else
+                t[vx][vy] = t[vx*2][vy] + t[vx*2+1][vy];
+        } else {
+            int my = (ly + ry) / 2;
+            if (y <= my)
+                upd_y(vx, lx, rx, vy*2, ly, my, x, y, nval);
+            else
+                upd_y(vx, lx, rx, vy*2+1, my+1, ry, x, y, nval);
+            t[vx][vy] = t[vx][vy*2] + t[vx][vy*2+1];
+        }
+    }
+    void upd_x(int vx, int lx, int rx, int x, int y, int nval) {
+        if (lx != rx) {
+            int mx = (lx + rx) / 2;
+            if (x <= mx)
+                upd_x(vx*2, lx, mx, x, y, nval);
+            else
+                upd_x(vx*2+1, mx+1, rx, x, y, nval);
+        }
+        upd_y(vx, lx, rx, 1, 0, m-1, x, y, nval);
+    }
+public: 
+    void init(int n, int m){
+        this->n = n;
+        this->m = m;
+        int r = 1 , c = 1;
+        while(r < n) r *= 2;
+        while(c < m) c *= 2;
+        t = vector<vector<Node>>(2 * r , vector<Node>(2 * c));    
+    }
+    void build(vector<vector<int>> &g){
+        build_x(g , 1 , 0 , n - 1);
+    }
+    int qry(int x , int y , int xx , int yy){
+        return qry_x(1 , 0 , n - 1 , x , xx , y , yy).v; 
+    }
+    void upd(int r , int c , int val){
+        upd_x(1 , 0 , n - 1 , r , c , val);
+    }
 };
