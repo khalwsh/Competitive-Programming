@@ -1,7 +1,3 @@
-//#pragma GCC optimize("O3")
-//#pragma GCC optimize("Ofast,unroll-loops")
-//#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
-//#pragma GCC target("avx,avx2,fma")
 #include<bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp> // Common file
 #include <ext/pb_ds/tree_policy.hpp> // Including tree_order_statistics_node_update
