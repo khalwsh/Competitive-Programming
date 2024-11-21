@@ -1,67 +1,70 @@
-class SegmentTree {
-    int n;
-    vector<long long> segtree;
-    vector<pair<long long, int> > lazy;
-
-public:
-    void init(int sz) {
-        n = sz;
-        segtree.resize(1 + 4 * sz);
-        lazy.resize(1 + 4 * sz);
+typedef long long ll;
+const int N = 2e5 + 1;
+int t[N];
+struct Node {
+    ll firstValue , Increment;
+    Node(ll f = 0 , ll i = 0) {
+        firstValue = f;
+        Increment = i;
     }
-
-    long long gauss(int start, int len, int step) {
-        return 1LL * start * len + 1LL * step * (len - 1) * len / 2;
+    Node operator+(const Node &a) {
+        Node res;
+        res.firstValue = firstValue + a.firstValue;
+        res.Increment = Increment + a.Increment;
+        return res;
     }
-
-    void lz(int node, int L, int R) {
-        segtree[node] += gauss(lazy[node].first, R - L + 1, lazy[node].second);
-        int mid = (L + R) / 2;
-        if (L != R) {
-            lazy[node << 1].first += lazy[node].first;
-            lazy[node << 1].second += lazy[node].second;
-            lazy[node << 1 | 1].first += lazy[node].first + 1LL * lazy[node].second * (mid - L + 1);
-            lazy[node << 1 | 1].second += lazy[node].second;
-        }
-        lazy[node] = {0, 0};
+};
+struct SegmentTree {
+    vector<ll>tree;
+    vector<Node>lazy;
+    SegmentTree(int n) {
+        tree.resize(4 * n);
+        lazy.resize(4 * n);
     }
-
-    void build(int node, int L, int R, vector<int> &v) {
-        if (L == R) {
-            segtree[node] = v[L];
+    void build(int node , int nl , int nr) {
+        if(nl == nr) {
+            tree[node] = t[nl];
             return;
         }
-        int mid = (L + R) / 2;
-        build(node << 1, L, mid, v);
-        build(node << 1 | 1, mid + 1, R, v);
-        segtree[node] = segtree[node << 1] + segtree[node << 1 | 1];
+        int mid = nl + (nr - nl) / 2;
+        build(2 * node + 1 , nl , mid);
+        build(2 * node + 2 , mid + 1 , nr);
+        tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
     }
-
-    void update(int node, int L, int R, int Lq, int Rq, int val) {
-        if (lazy[node].first)
-            lz(node, L, R);
-        if (R < Lq || L > Rq)
-            return;
-        if (Lq <= L && R <= Rq) {
-            lazy[node].first = val + (L - Lq);
-            lazy[node].second++;
-            lz(node, L, R);
+    ll sum(ll s, ll inc, ll len) {
+        // return (len * (2 * s + (len - 1) * inc)) / 2;
+        return 1LL * s * len + 1LL * inc * (len - 1) * len / 2;
+    }
+    void prop(int node , int nl , int nr) {
+        if(lazy[node].Increment) {
+            tree[node] += sum(lazy[node].firstValue , lazy[node].Increment , nr - nl + 1);
+            if(nl != nr) {
+                lazy[2 * node + 1] = lazy[2 * node + 1] + lazy[node];
+                ll mid = nl + (nr - nl) / 2;
+                lazy[2 * node + 2] = lazy[2 * node + 2] + Node(lazy[node].firstValue + lazy[node].Increment  * (mid - nl + 1) , lazy[node].Increment);
+            }
+            lazy[node].Increment = 0;
+            lazy[node].firstValue = 0;
+        }
+    }
+    void upd(int node , int nl , int nr , int l , int r , ll f) {
+        prop(node , nl , nr);
+        if(nl > r || nr < l)return ;
+        if(nl >= l && nr <= r) {
+            lazy[node].firstValue = f + nl - l, lazy[node].Increment++;
+            prop(node , nl , nr);
             return;
         }
-        int mid = (L + R) / 2;
-        update(node << 1, L, mid, Lq, Rq, val);
-        update(node << 1 | 1, mid + 1, R, Lq, Rq, val);
-        segtree[node] = segtree[node << 1] + segtree[node << 1 | 1];
+        ll mid = nl + (nr - nl) / 2;
+        upd(2 * node + 1 , nl , mid , l , r , f );
+        upd(2 * node + 2 , mid + 1 , nr , l , r ,f);
+        tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
     }
-
-    long long query(int node, int L, int R, int Lq, int Rq) {
-        if (lazy[node].first)
-            lz(node, L, R);
-        if (R < Lq || L > Rq)
-            return 0;
-        if (Lq <= L && R <= Rq)
-            return segtree[node];
-        int mid = (L + R) / 2;
-        return query(node << 1, L, mid, Lq, Rq) + query(node << 1 | 1, mid + 1, R, Lq, Rq);
+    ll query(int node , int nl , int nr , int l , int r) {
+        prop(node , nl , nr);
+        if(nl >= l && nr <= r)return tree[node];
+        if(nl > r || nr < l)return 0;
+        int mid = nl + (nr - nl) / 2;
+        return query(2 * node + 1 , nl , mid , l , r) + query(2 * node + 2 , mid + 1, nr , l , r);
     }
 };
