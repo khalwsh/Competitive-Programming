@@ -1,0 +1,22 @@
+max edge dis-joint path : make the capacity for each edge is 1 and make max flow
+
+weight on vertex not edge: make edge splitting trick like every node has a dummy node and if an edge is out of a node it is out of the dummy not the node and node connect
+to the dummy with weight 1.
+
+max independent path (no node appears 2 times): like max edge dis-joint but weight on vertex so make the splitting trick
+
+multi-source multi-sink: make super source , super sink ... super: you make extra node and connect it to what is represents with very huge weights
+
+maximum bipartite matching: n boys , m girls , k relations , multi-source , multi-sink
+
+Min path Coverage in DAG (min number of paths to include all nodes such that no edge used twice):
+
+there is relation between this problem and maximum bipartite matching using (konig theorm)
+
+solution:
+you make adj matrix and make maximum bipartite matching between the nodes like 1->2 , 2-->3 ,... note: you have 2 groups the left and right 1-->2 , 2-->3 those 2 are different
+
+after that the answer is just N - maximum bipartite matching for this graph
+
+
+How to find min cut edges: make bfs from source and ride any edge > 0 and treat edges with 0 as not exist then any vis node that has edge to not visited node then this is min cut edge 

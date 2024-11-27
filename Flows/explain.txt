@@ -1,9 +1,0 @@
-Edmonds-Karp: Uses a BFS as a method of finding augmenting paths, O(E^2 V)
-
-Capacity scaling: Adds a heuristic on top of Ford-Fulkerson to pick larger paths first O(E^2 log(u))
-
-Dinic's algorithm: Uses combination of BFS + DFS to find augmenting paths O(V^2 E)
-
-Push Relabel: Uses a concept of maintaining a "preflow" instead of finding augmenting paths to achieve a max-flow solution O( V^2 E or V^2 sqrt(E))
-
-NOTE: Be mindful that the time complexities for flow algorithms are very pessimistic. In practice, they tend to operate much faster, making it hard to compare the performance of flow algorithms solely based on complexity.
