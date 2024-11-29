@@ -71,21 +71,51 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);cout.tie(nullptr);
     cin>>s;
-    ll k;cin>>k;
     n = s.size();
     build();
-    BuildLcp();
-    if(k <= s.size() - suf[1]) {
-        cout<<s.substr(suf[0] , k);
-        exit(0);
-    }
-    k -= s.size() - suf[1];
-    for(int i = 2;i < suf.size();i++) {
-        int nw = s.size() - suf[i] - lcp[i - 1];
-        if(k <= nw) {
-            cout<<s.substr(suf[i] , k + lcp[i - 1]);
-            exit(0);
+    // for(auto &val:suf)cout<<val<<" "<<s.substr(val)<<endl;
+    int q;cin>>q;
+    while (q--) {
+        string temp;
+        cin >> temp;
+        int lst = -1, fst = 0;
+        int left = 0, right = suf.size() - 1;
+
+        auto compare = [&](int start) {
+            int temp_len = temp.size();
+            int suffix_len = n - start;
+            for (int i = 0; i < min(suffix_len, temp_len); i++) {
+                if (temp[i] != s[i + start]) {
+                    return (temp[i] < s[i + start]) ? 1 : -1;
+                }
+            }
+            return 0;
+        };
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            int cmp = compare(suf[mid]);
+            if (cmp >= 0) {
+                right = mid - 1;
+                if(!cmp)fst = mid;
+            } else {
+                left = mid + 1;
+            }
         }
-        k -= nw;
+
+        left = 0, right = suf.size() - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            int cmp = compare(suf[mid]);
+            if (cmp <= 0) {
+                left = mid + 1;
+                if(!cmp)lst = mid;
+            } else {
+                right = mid - 1;
+            }
+        }
+        // cout<<fst<<" "<<lst<<'\n';
+        cout << max(0, lst - fst + 1) << '\n';
     }
+
 }

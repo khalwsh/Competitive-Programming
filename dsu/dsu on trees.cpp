@@ -1,62 +1,44 @@
-const int N = 2e5 + 1;
-int arr[N],siz[N],res[N],bgchild[N];
+int n;
+int a[N] , sz[N] , bg[N] , freq[N] , ans[N] , x;
 vector<int>adj[N];
-vector<int>v[N];
-map<int,int>s;
-void dfs1(int node,int par = -1){
-    siz[node] = 1 , bgchild[node] = -1;
-    int mx = 0;
-    for(auto &val:adj[node]){
+int cnt = 0;
+void dfs1(int node , int par) {
+    sz[node] = 1;
+    for(auto &val:adj[node]) {
         if(val == par)continue;
-        dfs1(val,node);
-        siz[node]+=siz[val];
-        if(mx < siz[val]) {
-            mx = siz[val] , bgchild[node] = val;
-        }
+        dfs1(val , node);
+        sz[node] += sz[val];
+        if(bg[node] == -1 || sz[bg[node]] < sz[val])bg[node] = val;
     }
 }
-void dfs2(int node,int par = -1,bool keep = false) {
-    int BigChild = bgchild[node];
-    //make dfs calls for light children and mark them that you should erase your answer to not ruin the global answer
-    for (auto &val: adj[node]) {
-        if (val != BigChild && val != par) {
-            dfs2(val, node, false);
-        }
+void collect(int node , int par , int value) {
+    if(value == 1 && freq[a[node]] == 0)cnt++;
+    if(value == -1 && freq[a[node]] == 1)cnt--;
+    freq[a[node]] += value;
+    for(auto &val:adj[node]) {
+        if(val == par)continue;
+        collect(val , node , value);
     }
-
-
-    //if it's not a leaf node do dfs for big child and don't erase it's content
-    if (~BigChild) {
-        dfs2(BigChild, node, true);
-        swap(v[node], v[BigChild]);//O(1) operation that make cur node have the big child content to append
+}
+void dfs2(int node , int par , bool keep = false) {
+    for(auto &val:adj[node]) {
+        if(val == par || val == bg[node])continue;
+        dfs2(val , node , false);
     }
+    if(bg[node] != -1)dfs2(bg[node] , node , true);
 
-
-    //adding my self as part of my sub tree and adding my self to the answer
-    v[node].emplace_back(node);
-    s[arr[node]]++;
-
-
-    //iterate on small children subtrees and update the answer
-    for (auto &val: adj[node]) {
-        if (val != par && val != BigChild) {
-            for(auto &x:v[val]) {
-                v[node].emplace_back(x);
-                s[arr[x]]++;
-            }
-        }
+    // inser yourself
+    if(!freq[a[node]])cnt++;
+    freq[a[node]]++;
+    // insert small sub trees
+    for(auto &val:adj[node]) {
+        if(val == par || val == bg[node])continue;
+        collect(val , node , 1);
     }
-
-
-    //calculating the answer for node
-    res[node] = (int) s.size();
-
-
-    //if you are light child erase your effect on the shared array that help me to answer to the nodes
-    if (!keep) {
-        for (auto &val: v[node]) {
-            s[arr[val]]--;
-            if (s[arr[val]] == 0)s.erase(arr[val]);
-        }
+    // calculate answer
+    ans[node] = cnt;
+    // delete you and the small children
+    if(!keep) {
+        collect(node , par , -1);
     }
 }

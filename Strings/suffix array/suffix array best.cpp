@@ -1,3 +1,4 @@
+// the suffix array doesn't has empty suffix and lcp compare suf[i] , suf[i + 1] , first entrie in it is dummy
 template<typename T, bool maximum_mode = false>
 struct RMQ {
     int n = 0;
