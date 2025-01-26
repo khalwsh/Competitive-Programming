@@ -27,7 +27,7 @@ void dfs2(int node , int par , bool keep = false) {
     }
     if(bg[node] != -1)dfs2(bg[node] , node , true);
 
-    // inser yourself
+    // insert yourself
     if(!freq[a[node]])cnt++;
     freq[a[node]]++;
     // insert small sub trees

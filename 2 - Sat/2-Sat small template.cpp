@@ -1,71 +1,56 @@
-struct twosat {
-	int n;  // total size combining +, -. must be even.
-	vector< vector<int> > g, gt;
-	vector<bool> vis, res;
-	vector<int> comp;
-	stack<int> ts;
-	twosat(int vars = 0) {
-		n = vars << 1;
-		g.resize(n);
-		gt.resize(n);
+struct TwoSat {
+	int N;
+	vector<vi> gr;
+	vi values; // 0 = false, 1 = true
+
+	TwoSat(int n = 0) : N(n), gr(2*n) {}
+
+	int addVar() { // (optional)
+		gr.emplace_back();
+		gr.emplace_back();
+		return N++;
 	}
 
-	//zero indexed, be careful
-	//if you want to force variable a to be true in OR or XOR combination
-	//add addOR (a,1,a,1);
-	//if you want to force variable a to be false in OR or XOR combination
-	//add addOR (a,0,a,0);
+	void either(int f, int j) {
+		f = max(2*f, -1-2*f);
+		j = max(2*j, -1-2*j);
+		gr[f].push_back(j^1);
+		gr[j].push_back(f^1);
+	}
+	void setValue(int x) { either(x, x); }
 
-	//(x_a or (not x_b))-> af=1,bf=0
-	void addOR(int a, bool af, int b, bool bf) {
-		a += a + (af ^ 1);
-		b += b + (bf ^ 1);
-		g[a ^ 1].push_back(b);  // !a => b
-		g[b ^ 1].push_back(a);  // !b => a
-		gt[b].push_back(a ^ 1);
-		gt[a].push_back(b ^ 1);
-	}
-	//(!x_a xor !x_b)-> af=0, bf=0
-	void addXOR(int a, bool af, int b, bool bf) {
-		addOR(a, af, b, bf);
-		addOR(a, !af, b, !bf);
-	}
-	void _add(int a,bool af,int b,bool bf) {
-		a += a + (af ^ 1);
-		b += b + (bf ^ 1);
-		g[a].push_back(b);
-		gt[b].push_back(a);
-	}
-	//add this type of condition->
-	//add(a,af,b,bf) means if a is af then b must need to be bf
-	void add(int a,bool af,int b,bool bf) {
-		_add(a, af, b, bf);
-		_add(b, !bf, a, !af);
-	}
-	void dfs1(int u) {
-		vis[u] = true;
-		for(int v : g[u]) if(!vis[v]) dfs1(v);
-		ts.push(u);
-	}
-	void dfs2(int u, int c) {
-		comp[u] = c;
-		for(int v : gt[u]) if(comp[v] == -1) dfs2(v, c);
-	}
-	bool ok() {
-		vis.resize(n, false);
-		for(int i = 0; i < n; ++i) if(!vis[i]) dfs1(i);
-		int scc = 0;
-		comp.resize(n, -1);
-		while(!ts.empty()) {
-			int u = ts.top();
-			ts.pop();
-			if(comp[u] == -1) dfs2(u, scc++);
+	void atMostOne(const vi& li) { // (optional)
+		if (sz(li) <= 1) return;
+		int cur = ~li[0];
+		rep(i,2,sz(li)) {
+			int next = addVar();
+			either(cur, ~li[i]);
+			either(cur, next);
+			either(~li[i], next);
+			cur = ~next;
 		}
-		res.resize(n / 2);
-		for(int i = 0; i < n; i += 2) {
-			if(comp[i] == comp[i + 1]) return false;
-			res[i / 2] = (comp[i] > comp[i + 1]);
-		}
-		return true;
+		either(cur, ~li[1]);
+	}
+
+	vi val, comp, z; int time = 0;
+	int dfs(int i) {
+		int low = val[i] = ++time, x; z.push_back(i);
+		for(int e : gr[i]) if (!comp[e])
+			low = min(low, val[e] ?: dfs(e));
+		if (low == val[i]) do {
+			x = z.back(); z.pop_back();
+			comp[x] = low;
+			if (values[x>>1] == -1)
+				values[x>>1] = x&1;
+		} while (x != i);
+		return val[i] = low;
+	}
+
+	bool solve() {
+		values.assign(N, -1);
+		val.assign(2*N, 0); comp = val;
+		rep(i,0,2*N) if (!comp[i]) dfs(i);
+		rep(i,0,N) if (comp[2*i] == comp[2*i+1]) return 0;
+		return 1;
 	}
 };
