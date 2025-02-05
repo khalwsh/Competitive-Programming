@@ -50,6 +50,10 @@ bool dfs(int u, vector<vector<int>>& adj, vector<int>& pairU, vector<int>& pairV
 }
 
 // Hopcroft-Karp Algorithm
+// graph should be 1 base
+// n number of nodes in first set
+// m number of nodes in second set
+// no need to add offset
 vector<pair<int , int>> hopcroftKarp(int n, int m, vector<vector<int>>& adj) {
     // graph should be 1 based
     vector<int> pairU(n + 1, 0); // Pairings for boys

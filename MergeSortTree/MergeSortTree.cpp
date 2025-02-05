@@ -1,42 +1,48 @@
-struct node{
-    vector<int>v;
-    node operator+(const node&a2){
-        node res;
-        int p1=0,p2=0;
-        while(p1<v.size()&&p2<a2.v.size()){
-            if(v[p1]<a2.v[p2])res.v.emplace_back(v[p1]),p1++;
-            else res.v.emplace_back(a2.v[p2]),p2++;
-        }
-        while(p1<v.size())res.v.emplace_back(v[p1]),p1++;
-        while(p2<a2.v.size())res.v.emplace_back(a2.v[p2]),p2++;
-        return res;
-    }
-    void merge(const node&a,const node&b){
-        std::merge(a.v.begin(),a.v.end(),b.v.begin(),b.v.end(),inserter(v,v.begin()));
-
-    }
-};
-struct SegmentTree{
-    vector<node>tree;
+struct MergeSortTree {
+    vector<vector<int>> tree;
     int n;
-    SegmentTree(int n){
-        this->n=n;
-        tree.resize(n*4);
+ 
+    MergeSortTree(int _n) : n(_n) {
+        tree.resize(4 * n);
     }
-    void build(int nd,int nl,int nr,vector<int>&v){
-        if(nl==nr){
-            tree[nd].v.emplace_back(v[nl]);
+ 
+    void build(int node, int nl, int nr, vector<int>& arr) {
+        if (nl == nr) {
+            tree[node] = {arr[nl]};
             return;
         }
-        int mid=nl+(nr-nl)/2;
-        build(2*nd+1,nl,mid,v);
-        build(2*nd+2,mid+1,nr,v);
-        tree[nd].merge(tree[2*nd+1],tree[2*nd+2]);
+ 
+        int mid = nl + (nr - nl) / 2;
+        build(2 * node + 1, nl, mid, arr);
+        build(2 * node + 2, mid + 1, nr, arr);
+ 
+        tree[node].resize(nr - nl + 1);
+        merge(tree[2 * node + 1].begin(), tree[2 * node + 1].end(),
+              tree[2 * node + 2].begin(), tree[2 * node + 2].end(),
+              tree[node].begin());
     }
-    int query(int nd,int nl,int nr,int l,int r,int value){
-        if(nl>r||nr<l)return 0;
-        if(nl>=l&&nr<=r)return lower_bound(tree[nd].v.begin(),tree[nd].v.end(),value)-tree[nd].v.begin();
-        int mid=nl+(nr-nl)/2;
-        return query(2*nd+1,nl,mid,l,r,value)+query(2*nd+2,mid+1,nr,l,r,value);
+ 
+    int countLessThan(int node, int nl, int nr, int l, int r, int value) {
+        // how many value less than me
+        if (r < nl || l > nr) return 0;
+        if (l <= nl && nr <= r) {
+            return lower_bound(tree[node].begin(), tree[node].end(), value) - tree[node].begin();
+        }
+ 
+        int mid = nl + (nr - nl) / 2;
+        return countLessThan(2 * node + 1, nl, mid, l, r, value) +
+               countLessThan(2 * node + 2, mid + 1, nr, l, r, value);
+    }
+ 
+    int countGreaterThan(int node, int nl, int nr, int l, int r, int value) {
+        // how many value greater than me
+        if (r < nl || l > nr) return 0;
+        if (l <= nl && nr <= r) {
+            return tree[node].end() - upper_bound(tree[node].begin(), tree[node].end(), value);
+        }
+ 
+        int mid = nl + (nr - nl) / 2;
+        return countGreaterThan(2 * node + 1, nl, mid, l, r, value) +
+               countGreaterThan(2 * node + 2, mid + 1, nr, l, r, value);
     }
 };
