@@ -1,31 +1,45 @@
-struct RollBackDsu{
-    vector<int>parent,size;
-    stack<pair<pair<int,int>,pair<int,int>>>sk;
-    RollBackDsu(int _n){
-        parent.resize(_n);
-        iota(parent.begin(),parent.end(),0ll);
-        size.resize(_n,1);
+struct RollBackDsu {
+    vector<int> parent, size;
+    vector<array<int,4>> history;
+    vector<int> opStack;
+
+    RollBackDsu(int n) {
+        parent.resize(n);
+        size.assign(n, 1);
+        for(int i = 0; i < n; i++){
+            parent[i] = i;
+        }
     }
-    int find(int child){
-        return (child == parent[child]?child:find(parent[child]));
+
+    int find(int a) {
+        return (parent[a] == a ? a : find(parent[a]));
     }
-    bool Merge(int a,int b){
+    bool Merge(int a, int b) {
         a = find(a);
         b = find(b);
-        if(a==b)return false;
-        if(size[a]>size[b])swap(a,b);
-        sk.push({{a,parent[a]},{b,size[b]}});
+        if(a == b) {
+            opStack.push_back(0);
+            return false;
+        }
+        if(size[a] > size[b]) swap(a, b);
+        history.push_back({a, parent[a], b, size[b]});
+        opStack.push_back(1);
         parent[a] = b;
         size[b] += size[a];
         return true;
     }
-    void RollBack(int cnt){
-        assert(cnt <= sk.size());
-        while(cnt--){
-            auto it = sk.top();
-            sk.pop();
-            parent[it.first.first] = it.first.second;
-            size[it.second.first] = it.second.second;
+
+    void rollback(int x) {
+        while(x--) {
+            int cnt = opStack.back();
+            opStack.pop_back();
+            if(cnt == 1) {
+                auto act = history.back();
+                history.pop_back();
+                int a = act[0], oldParent = act[1], b = act[2], oldSize = act[3];
+                parent[a] = oldParent;
+                size[b] = oldSize;
+            }
         }
     }
 };
