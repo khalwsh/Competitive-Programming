@@ -1,5 +1,6 @@
 template<class T>
 struct Fenwick{
+    int log2_floor(long long i) {return i ? __builtin_clzll(1) - __builtin_clzll(i) : 0;}
     int n;
     vector<T>tree;
     int N = 1;

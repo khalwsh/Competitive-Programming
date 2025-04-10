@@ -13,6 +13,7 @@ struct Bit2D {
         fw.resize(ord.size() + 1);
         coord.resize(fw.size());
 
+        // Swap coordinates for building BIT structure for y-dimension updates
         for (auto& a : pts)
             swap(a.first, a.second);
         sort(pts.begin(), pts.end());
@@ -26,17 +27,19 @@ struct Bit2D {
         for (int i = 0; i < fw.size(); i++)
             fw[i].assign(coord[i].size() + 1, 0);
     }
-    T merge(T a , T b){
+
+    T merge(T a, T b) {
         return a + b;
     }
-    // point upd
+
+    // point update: adds value v at (x, y)
     void upd(T x, T y, T v) {
         for (int xx = upper_bound(ord.begin(), ord.end(), x) - ord.begin(); xx < fw.size(); xx += xx & -xx)
             for (int yy = upper_bound(coord[xx].begin(), coord[xx].end(), y) - coord[xx].begin(); yy < fw[xx].size(); yy += yy & -yy)
                 fw[xx][yy] = merge(fw[xx][yy], v);
     }
 
-    // point qry
+    // point query: returns sum from (0, 0) to (x, y)
     T qry(T x, T y) {
         T ans = 0;
         for (int xx = upper_bound(ord.begin(), ord.end(), x) - ord.begin(); xx > 0; xx -= xx & -xx)
@@ -45,12 +48,12 @@ struct Bit2D {
         return ans;
     }
 
-    // range qry
+    // range query: returns sum for rectangle defined by bottom-left (x1, y1) and top-right (x2, y2)
     T qry(T x1, T y1, T x2, T y2) {
         return qry(x2, y2) - qry(x2, y1 - 1) - qry(x1 - 1, y2) + qry(x1 - 1, y1 - 1);
     }
 
-    // range upd
+    // range update: adds v to each point in the rectangle defined by bottom-left (x1, y1) and top-right (x2, y2)
     void upd(T x1, T y1, T x2, T y2, T v) {
         upd(x1, y1, v);
         upd(x1, y2 + 1, -v);
