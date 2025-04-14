@@ -36,5 +36,3 @@ Here’s a categorized list of key templates and algorithms available in this re
 | **String Processing**  | [strings](https://github.com/khalwsh/Competitive-Programming/tree/main/Strings)
 | **Game theory**        | [game theory](https://github.com/khalwsh/Competitive-Programming/tree/main/Game%20theory)
 | **Bit Mask**           | [Bits](https://github.com/khalwsh/Competitive-Programming/tree/main/BitMasking)
-
-https://github.com/khalwsh/Competitive-Programming/issues) for questions or suggestions.
