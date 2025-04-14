@@ -12,16 +12,14 @@ ll power(ll base, ll exp) {
 class SegmentTree {
 private:
     int n;
-    vector<ll> tree, lazy_a, lazy_r;  // lazy_a: coefficient, lazy_r: first power of K
+    vector<ll> tree, lazy_a, lazy_r; 
     ll K;
 
-    // Get geometric sum: a*r^0 + a*r^1 + ... + a*r^(n-1)
     ll geometric_sum(ll a, ll r, ll n) {
         if (n == 0) return 0;
         if (n == 1) return a % MOD;
-        // Using formula: a*(1-r^n)/(1-r) for r != 1
         ll rn = power(r, n);
-        ll denominator = power(MOD + 1 - r, MOD - 2); // Modular multiplicative inverse of (1-r)
+        ll denominator = power(MOD + 1 - r, MOD - 2);
         return (a * ((1 - rn + MOD) % MOD) % MOD * denominator) % MOD;
     }
 
@@ -33,17 +31,14 @@ private:
             int left_child = node << 1;
             int right_child = left_child | 1;
 
-            // Left child
             lazy_a[left_child] = (lazy_a[left_child] + lazy_a[node]) % MOD;
             lazy_r[left_child] = lazy_r[node];
 
-            // Right child - adjust power of K by length of left subtree
             lazy_a[right_child] = (lazy_a[right_child] +
                                  (lazy_a[node] * power(K, mid - left + 1)) % MOD) % MOD;
             lazy_r[right_child] = (lazy_r[node] + (mid - left + 1)) % (MOD - 1);
         }
 
-        // Update current node
         tree[node] = (tree[node] + geometric_sum(lazy_a[node], K, right - left + 1)) % MOD;
         lazy_a[node] = 0;
         lazy_r[node] = 0;
@@ -91,18 +86,12 @@ public:
     }
 
     void update(int left, int right, ll val) {
+        // 2 ^ 0 + tree[left] , 2 ^ 1 + tree[left + 1] .... , 2 ^ (right - left) + tree[right]
         update_range(1, 0, n - 1, left, right, val);
     }
 
     ll query(int left, int right) {
         return query_range(1, 0, n - 1, left, right);
     }
-
-    vector<ll> get_final_array() {
-        vector<ll> result(n);
-        for (int i = 0; i < n; i++) {
-            result[i] = query(i, i);
-        }
-        return result;
-    }
+    
 };
