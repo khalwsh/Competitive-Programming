@@ -1,77 +1,144 @@
-struct Edge {
-    int to;
-    ll cost;
-    int cap, flow, backEdge;
-};
+struct MCMF {
+    struct edge {
+        int u, v;
+        T cap, cost;
+        int id;
 
-struct MCMF
-{
+        edge(int _u, int _v, T _cap, T _cost, int _id)
+                : u(_u), v(_v), cap(_cap), cost(_cost), id(_id) {}
+    };
 
-    const int inf = 1000000010;
-    int n;
-    vector<vector<Edge>> g;
+    int n, s, t, mxid;
+    T flow, cost;
+    vector<vector<int>> g;
+    vector<edge> e;
+    vector<T> d, potential, flow_through;
+    vector<int> par;
+    bool neg;
+
+    MCMF() {}
 
     MCMF(int _n) {
-        n = _n + 1;
-        g.resize(n);
+        n = _n + 10;
+        g.assign(n, {});
+        neg = false;
+        mxid = 0;
     }
 
-    void addEdge(int u, int v, int cap, ll cost) {
-        Edge e1 = {v, cost, cap, 0, (int) g[v].size()};
-        Edge e2 = {u, -cost, 0, 0, (int) g[u].size()};
-        g[u].push_back(e1);
-        g[v].push_back(e2);
+    void add_edge(int u, int v, T cap, T cost, int id = -1, bool directed = true) {
+        if (cost < 0) neg = true;
+        g[u].push_back(e.size());
+        e.emplace_back(u, v, cap, cost, id);
+        g[v].push_back(e.size());
+        e.emplace_back(v, u, 0, -cost, -1);
+        mxid = max(mxid, id);
+        if (!directed) add_edge(v, u, cap, cost, -1, true);
     }
 
-    pair<ll, int> minCostMaxFlow(int s, int t) {
-        int flow = 0;
-        ll cost = 0;
-        vector<int> state(n), from(n), from_edge(n);
-        vector<ll> d(n);
-        deque<int> q;
-        while (true) {
-            for (int i = 0; i < n; i++)
-                state[i] = 2, d[i] = OO, from[i] = -1;
-            state[s] = 1;
-            q.clear();
-            q.push_back(s);
-            d[s] = 0;
-            while (!q.empty()) {
-                int v = q.front();
-                q.pop_front();
-                state[v] = 0;
-                for (int i = 0; i < (int) g[v].size(); i++) {
-                    Edge e = g[v][i];
-                    if (e.flow >= e.cap || (d[e.to] <= d[v] + e.cost))
-                        continue;
-                    int to = e.to;
-                    d[to] = d[v] + e.cost;
-                    from[to] = v;
-                    from_edge[to] = i;
-                    if (state[to] == 1) continue;
-                    if (!state[to] || (!q.empty() && d[q.front()] > d[to]))
-                        q.push_front(to);
-                    else q.push_back(to);
-                    state[to] = 1;
+    bool dijkstra() {
+        par.assign(n, -1);
+        d.assign(n, inf);
+        priority_queue<pair<T, int>, vector<pair<T, int>>, greater<>> q;
+
+        d[s] = 0;
+        q.emplace(0, s);
+
+        while (!q.empty()) {
+            int u = q.top().second;
+            T nw = q.top().first;
+            q.pop();
+
+            if (nw != d[u]) continue;
+
+            for (int i = 0; i < (int) g[u].size(); i++) {
+                int id = g[u][i];
+                int v = e[id].v;
+                T cap = e[id].cap;
+                T w = e[id].cost + potential[u] - potential[v];
+
+                if (d[u] + w < d[v] && cap > 0) {
+                    d[v] = d[u] + w;
+                    par[v] = id;
+                    q.emplace(d[v], v);
                 }
             }
-            if (d[t] == OO) break;
-            int it = t, addflow = inf;
-            while (it != s) {
-                addflow = min(addflow,
-                              g[from[it]][from_edge[it]].cap
-                              - g[from[it]][from_edge[it]].flow);
-                it = from[it];
-            }
-            it = t;
-            while (it != s) {
-                g[from[it]][from_edge[it]].flow += addflow;
-                g[it][g[from[it]][from_edge[it]].backEdge].flow -= addflow;
-                cost += g[from[it]][from_edge[it]].cost * addflow;
-                it = from[it];
-            }
-            flow += addflow;
         }
-        return {cost, flow};
+
+        for (int i = 0; i < n; i++) {
+            if (d[i] < inf) d[i] += (potential[i] - potential[s]);
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (d[i] < inf) potential[i] = d[i];
+        }
+
+        return d[t] != inf;  // for max flow min cost
+        // return d[t] <= 0; // for min cost flow
+    }
+
+    T send_flow(int v, T cur) {
+        if (par[v] == -1) return cur;
+        int id = par[v];
+        int u = e[id].u;
+        T w = e[id].cost;
+        T f = send_flow(u, min(cur, e[id].cap));
+
+        cost += f * w;
+        e[id].cap -= f;
+        e[id ^ 1].cap += f;
+
+        return f;
+    }
+
+    // Returns {maxflow, mincost}
+    pair<T, T> solve(int _s, int _t, T goal = inf) {
+        s = _s;
+        t = _t;
+        flow = 0;
+        cost = 0;
+        potential.assign(n, 0);
+
+        if (neg) {
+            d.assign(n, inf);
+            d[s] = 0;
+            bool relax = true;
+
+            for (int i = 0; i < n && relax; i++) {
+                relax = false;
+                for (int u = 0; u < n; u++) {
+                    for (int k = 0; k < (int) g[u].size(); k++) {
+                        int id = g[u][k];
+                        int v = e[id].v;
+                        T cap = e[id].cap;
+                        T w = e[id].cost;
+
+                        if (d[v] > d[u] + w && cap > 0) {
+                            d[v] = d[u] + w;
+                            relax = true;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < n; i++) {
+                if (d[i] < inf) potential[i] = d[i];
+            }
+        }
+
+        while (flow < goal && dijkstra()) {
+            flow += send_flow(t, goal - flow);
+        }
+
+        flow_through.assign(mxid + 10, 0);
+
+        for (int u = 0; u < n; u++) {
+            for (auto id : g[u]) {
+                if (e[id].id >= 0) {
+                    flow_through[e[id].id] = e[id ^ 1].cap;
+                }
+            }
+        }
+
+        return {flow, cost};
     }
 };

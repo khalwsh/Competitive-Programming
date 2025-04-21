@@ -3,7 +3,7 @@ struct HopcroftKarp {
     vector<vector<int>> adj;
     vector<int> mu, mv, dist;
 
-    HopcroftKarp(int n) : n(n), adj(n), mu(n, -1), mv(n, -1), dist(n) {}
+    HopcroftKarp(int n , int m) : n(n), adj(n), mu(n, -1), mv(m, -1), dist(n) {}
 
     void add_edge(int u, int v) {
         adj[u].push_back(v);
