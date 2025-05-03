@@ -7,43 +7,48 @@ struct segmentTree {
             lazy[i].resize(4 * n);
         }
     }
-    void build(int node , int nl , int nr , vector<int>&v) {
+    void build(int node , int nl , int nr) {
         if (nl == nr) {
             for (int i = 0;i < BITS;i++) {
-                tree[i][node] = (v[nl] >> i) & 1;
+                tree[i][node] = (from_root[LinearTree[nl]] >> i) & 1;
             }
             return;
         }
         int mid = nl + (nr - nl) / 2;
-        build(2 * node + 1 , nl , mid , v);
-        build(2 * node + 2 , mid + 1 , nr , v);
+        build(2 * node + 1 , nl , mid);
+        build(2 * node + 2 , mid + 1 , nr);
         for (int i = 0;i < BITS;i++) {
             tree[i][node] = tree[i][2 * node + 1] + tree[i][2 * node + 2];
         }
     }
     void prop(int node , int nl , int nr) {
-        for (int i = 0;i < BITS;i++) {
-            lazy[i][node] &= 1;
-            if (lazy[i][node]) {
-                tree[i][node] = nr - nl + 1 - tree[i][node];
-                lazy[i][2 * node + 1] += lazy[i][node];
-                lazy[i][2 * node + 2] += lazy[i][node];
+        for (int i = 0; i < BITS; i++) {
+            if (lazy[i][node] & 1) {
+                tree[i][node] = (nr - nl + 1) - tree[i][node];
+                if (nl != nr) {
+                    lazy[i][2 * node + 1] ^= 1;
+                    lazy[i][2 * node + 2] ^= 1;
+                }
                 lazy[i][node] = 0;
             }
         }
     }
+
     void upd(int node , int nl , int nr , int l , int r , int val) {
         prop(node , nl , nr);
         if (nl >= l && nr <= r) {
-            for (int i = 0;i < BITS;i++) {
-                if (val >> i & 1){
-                    tree[i][node] = nr - nl + 1 - tree[i][node];
-                    lazy[i][2 * node + 1] += 1;
-                    lazy[i][2 * node + 2] += 1;
+            for (int i = 0; i < BITS; i++) {
+                if (val >> i & 1) {
+                    tree[i][node] = (nr - nl + 1) - tree[i][node];
+                    if (nl != nr) {
+                        lazy[i][2 * node + 1] ^= 1;
+                        lazy[i][2 * node + 2] ^= 1;
+                    }
                 }
             }
             return;
         }
+
         if (nl > r || nr < l)return;
         int mid = nl + (nr - nl) / 2;
         upd(2 * node + 1 , nl , mid , l , r , val);

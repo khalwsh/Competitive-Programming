@@ -1,49 +1,102 @@
-vector<vector<int>> adj , dag , comps;
-int comp[N] , inStack[N] , lowLink[N] , dfn[N] , deg[N];
-stack<int> st;
-int ndfn;
-void tarjan(int u){
-    dfn[u] = lowLink[u] = ndfn++;
-    inStack[u] = true;
-    st.push(u);
-    for(auto &v : adj[u]){
-        if(dfn[v] == -1){
-            tarjan(v);
-            lowLink[u] = min(lowLink[u] , lowLink[v]);
-        }else if(inStack[v]){
-            lowLink[u] = min(lowLink[u] , dfn[v]);
+struct SCC {
+    int n;
+    vector<vector<int>> adj;
+    vector<ll> origWeight;
+    vector<int> dag_in_degree;
+    vector<int> dfn, lowLink, comp;
+    vector<bool> inStack;
+    stack<int> st;
+    int timer;
+
+    vector<vector<int>> components;
+    vector<vector<int>> dag;
+    vector<ll> compWeight;
+
+    SCC(const vector<vector<int>>& graph, const vector<ll>& weight = {})
+        : n(graph.size()), adj(graph) {
+        if (weight.empty()) {
+            origWeight.assign(n, 1);
+        } else {
+            if ((int)weight.size() != n)
+                throw invalid_argument("Weight array size must match number of nodes");
+            origWeight = weight;
+        }
+        dag_in_degree.resize(n);
+        dfn.assign(n, -1);
+        lowLink.assign(n, 0);
+        comp.assign(n, -1);
+        inStack.assign(n, false);
+        timer = 0;
+
+        for (int u = 0; u < n; u++) {
+            if (dfn[u] == -1)
+                tarjan(u);
+        }
+
+        buildDag();
+
+        compWeight.assign(components.size(), 0);
+        for (int u = 0; u < n; u++) {
+            compWeight[ comp[u] ] += origWeight[u];
         }
     }
-    if(dfn[u] == lowLink[u]){
-        // head of component
-        int x = -1;
-        comps.emplace_back(vector<int>());
-        while(x != u){
-            x = st.top(); st.pop(); inStack[x] = 0;
-            comps.back().emplace_back(x);
-            comp[x] = (int)comps.size() - 1;
-        }
+    const vector<vector<int>>& getSCCs() const {
+        return components;
     }
-}
-void genDag(){
-    dag.resize(comps.size());
-    for(int u = 0 ; u < adj.size() ; u++){
-        for(auto &v :adj[u]){
-            if(comp[u] != comp[v]){
-                dag[comp[u]].emplace_back(comp[v]);
-                deg[comp[v]]++;
+    const vector<vector<int>>& getDAG() const {
+        return dag;
+    }
+    const vector<ll>& getComponentWeights() const {
+        return compWeight;
+    }
+    const vector<int>& getInDegree()const {
+        return dag_in_degree;
+    }
+
+private:
+    void tarjan(int u) {
+        dfn[u] = lowLink[u] = timer++;
+        inStack[u] = true;
+        st.push(u);
+
+        for (int v : adj[u]) {
+            if (dfn[v] == -1) {
+                tarjan(v);
+                lowLink[u] = min(lowLink[u], lowLink[v]);
+            } else if (inStack[v]) {
+                lowLink[u] = min(lowLink[u], dfn[v]);
+            }
+        }
+
+        if (lowLink[u] == dfn[u]) {
+            components.emplace_back();
+            while (true) {
+                int x = st.top(); st.pop();
+                inStack[x] = false;
+                comp[x] = (int)components.size() - 1;
+                components.back().push_back(x);
+                if (x == u) break;
             }
         }
     }
-}
-void SCC(int n){
-    ndfn = 0;
-    comps.clear();
-    for(int i=0;i<n;i++){
-        dfn[i] = -1;
-        lowLink[i] = inStack[i] = deg[i] = 0;
+
+    void buildDag() {
+        int csz = components.size();
+        dag.assign(csz, {});
+        unordered_set<long long> seen;
+
+        for (int u = 0; u < n; u++) {
+            int cu = comp[u];
+            for (int v : adj[u]) {
+                int cv = comp[v];
+                if (cu != cv) {
+                    long long code = (long long)cu << 32 | (unsigned)cv;
+                    if (seen.insert(code).second) {
+                        dag_in_degree[cv]++;
+                        dag[cu].push_back(cv);
+                    }
+                }
+            }
+        }
     }
-    for(int i = 0 ; i < n ; i++)
-        if(dfn[i] == -1) tarjan(i);
-    genDag();
-}
+};
