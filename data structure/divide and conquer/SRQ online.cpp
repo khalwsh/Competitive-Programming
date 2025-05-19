@@ -15,7 +15,7 @@ struct SRQ {
 
     // our associative operator
     T comb(T x, T y) const {
-        return x * y % p;
+        return 0;
     }
 
     void build(int l, int r, int lvl) {
@@ -28,7 +28,7 @@ struct SRQ {
             prec[lvl][i] = comb(a[i], prec[lvl][i + 1]);
 
         for (int i = m + 2; i <= r; ++i)
-            prec[lvl][i] = comb(a[i], prec[lvl][i - 1]);
+            prec[lvl][i] = comb(prec[lvl][i - 1] , a[i]);
 
         for (int i = m + 1; i <= r; ++i)
             msk[i] |= (1 << lvl);
