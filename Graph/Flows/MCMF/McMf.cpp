@@ -1,3 +1,5 @@
+const ll inf = 1e18
+template <class T>
 struct MCMF {
     struct edge {
         int u, v;
