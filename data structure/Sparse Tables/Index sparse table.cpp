@@ -1,3 +1,4 @@
+int log2_floor(long long i) {return i ? __builtin_clzll(1) - __builtin_clzll(i) : 0;}
 const int k = 20;
 int sp1[k][N];//max
 int sp2[k][N];//min

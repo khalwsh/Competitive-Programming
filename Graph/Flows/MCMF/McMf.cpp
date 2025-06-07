@@ -1,4 +1,4 @@
-const ll inf = 1e18
+const ll inf = 1e18;
 template <class T>
 struct MCMF {
     struct edge {
