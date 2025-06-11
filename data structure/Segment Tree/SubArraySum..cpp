@@ -2,7 +2,7 @@ const ll inf = 1e18;
 struct Node {
     // note: you don't consider empty subarray so if you want max(answer , 0)
     ll left, right, max, sum;
-    Node(ll a = -inf, ll b = -inf, ll c = -inf, ll d = -inf) {
+    Node(ll a = 0, ll b = -inf, ll c = -inf, ll d = -inf) {
         sum = a, left = b, right = c, max = d;
     }
 
