@@ -1,3 +1,9 @@
+// O(V^2 E) and in unit graph works in O(E sqrt(v))
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
 struct Dinic {
     const long long flow_inf = 1e18;
     vector<FlowEdge> edges;
@@ -71,5 +77,33 @@ struct Dinic {
             }
         }
         return f;
+    }
+    // After max-flow, find min-cut edges: edges from reachable to non-reachable
+    vector<pair<int,int>> min_cut_edges() {
+        vector<char> visited(n, false);
+        queue<int> qu;
+        qu.push(s);
+        visited[s] = true;
+        // BFS on residual graph
+        while (!qu.empty()) {
+            int v = qu.front(); qu.pop();
+            for (int id : adj[v]) {
+                if (edges[id].flow == edges[id].cap) continue; // no residual capacity
+                int u = edges[id].u;
+                if (!visited[u]) {
+                    visited[u] = true;
+                    qu.push(u);
+                }
+            }
+        }
+        vector<pair<int,int>> cut;
+        // original edges are at even indices
+        for (int id = 0; id < m; id += 2) {
+            const auto &e = edges[id];
+            if (visited[e.v] && !visited[e.u] && e.cap > 0) {
+                cut.emplace_back(e.v, e.u);
+            }
+        }
+        return cut;
     }
 };

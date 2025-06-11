@@ -1,13 +1,3 @@
-// O(V^2 E) and in unit graph works in O(E sqrt(v))
-#include <bits/stdc++.h>
-using namespace std;
-
-struct FlowEdge {
-    int v, u;
-    long long cap, flow = 0;
-    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
-};
-
 struct Dinic {
     const long long flow_inf = 1e18;
     vector<FlowEdge> edges;
@@ -32,10 +22,6 @@ struct Dinic {
     }
 
     bool bfs() {
-        fill(level.begin(), level.end(), -1);
-        level[s] = 0;
-        while (!q.empty()) q.pop();
-        q.push(s);
         while (!q.empty()) {
             int v = q.front();
             q.pop();
@@ -56,7 +42,7 @@ struct Dinic {
             return 0;
         if (v == t)
             return pushed;
-        for (int &cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
             int id = adj[v][cid];
             int u = edges[id].u;
             if (level[v] + 1 != level[u])
@@ -73,7 +59,12 @@ struct Dinic {
 
     long long flow() {
         long long f = 0;
-        while (bfs()) {
+        while (true) {
+            fill(level.begin(), level.end(), -1);
+            level[s] = 0;
+            q.push(s);
+            if (!bfs())
+                break;
             fill(ptr.begin(), ptr.end(), 0);
             while (long long pushed = dfs(s, flow_inf)) {
                 f += pushed;
@@ -81,26 +72,19 @@ struct Dinic {
         }
         return f;
     }
-
-    // Decompose the computed flow into s->t paths
-    vector<pair<vector<int>, long long>> get_paths() {
-        // Build adjacency of edges with positive flow
-        vector<vector<pair<int,int>>> g(n);
-        for (int id = 0; id < m; id += 2) {
-            if (edges[id].flow > 0) {
-                g[edges[id].v].emplace_back(edges[id].u, id);
-            }
-        }
-        vector<pair<vector<int>, long long>> paths;
+    vector<pair<vector<int>, ll>> extract_paths() {
+        vector<pair<vector<int>, ll>> paths;
         vector<int> parent_edge(n);
 
-        function<long long(int)> dfs2 = [&](int v) {
+        function<ll(int, vector<vector<pair<int,int>>>&)> dfs2 =
+        [&](int v, vector<vector<pair<int,int>>>& g) -> ll {
             if (v == t) return LLONG_MAX;
             for (auto &pr : g[v]) {
                 int u = pr.first, id = pr.second;
+                if (edges[id].flow <= 0) continue;
                 if (parent_edge[u] == -1) {
                     parent_edge[u] = id;
-                    long long pushed = dfs2(u);
+                    ll pushed = dfs2(u, g);
                     if (pushed > 0) {
                         return min(pushed, edges[id].flow);
                     }
@@ -110,10 +94,18 @@ struct Dinic {
         };
 
         while (true) {
+            vector<vector<pair<int,int>>> g(n);
+            for (int id = 0; id < m; id += 2) {
+                if (edges[id].flow > 0) {
+                    g[edges[id].v].emplace_back(edges[id].u, id);
+                }
+            }
+
             fill(parent_edge.begin(), parent_edge.end(), -1);
-            parent_edge[s] = -2; // mark source
-            long long pushed = dfs2(s);
+            parent_edge[s] = -2;
+            ll pushed = dfs2(s, g);
             if (pushed == 0) break;
+
             vector<int> path;
             int v = t;
             while (v != s) {
