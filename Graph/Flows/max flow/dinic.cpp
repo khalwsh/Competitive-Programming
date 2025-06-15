@@ -1,3 +1,8 @@
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
 struct Dinic {
     const long long flow_inf = 1e18;
     vector<FlowEdge> edges;
