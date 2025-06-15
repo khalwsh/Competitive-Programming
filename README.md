@@ -6,7 +6,7 @@ Welcome to my Competitive Programming repository! This repository serves as a co
 
 ---
 
-## What is Competitive Programming?
+## What is Competitive Programming ?
 
 Competitive programming involves solving algorithmic and mathematical problems under time constraints, often with optimized code. Competitors write programs to solve problems that test their logical thinking, data structure knowledge, and algorithmic efficiency. This repository focuses on providing **ready-to-use templates** for frequently encountered patterns, along with implementations of advanced algorithms.
 
