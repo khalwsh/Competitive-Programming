@@ -3,6 +3,7 @@ vector<int>adj[N];
 int bg[N] , sz[N] , ans[N] , n;
 
 void dfs1(int u , int p) {
+    bg[u] = -1;
     sz[u] = 1;
     for (auto &v : adj[u]) {
         if (v == p)continue;
