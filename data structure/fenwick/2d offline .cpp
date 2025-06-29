@@ -1,63 +1,47 @@
-template<class T = int>
-struct Bit2D {
-    vector<T> ord;
-    vector<vector<T>> fw, coord;
+template <typename T>
+struct OfflineBIT2D {
+    int n;
+    vector<vector<int>> vals;
+    vector<vector<T>> bit;
 
-    // pts needs all points that will be used in the upd
-    // if range upds remember to build with {x1, y1}, {x1, y2 + 1}, {x2 + 1, y1}, {x2 + 1, y2 + 1}
-    Bit2D(vector<pair<T, T>> pts) {
-        sort(pts.begin(), pts.end());
-        for (auto a : pts)
-            if (ord.empty() || a.first != ord.back())
-                ord.push_back(a.first);
-        fw.resize(ord.size() + 1);
-        coord.resize(fw.size());
+    int ind(const vector<int> &v, int x) {
+        return upper_bound(begin(v), end(v), x) - begin(v) - 1;
+    }
 
-        // Swap coordinates for building BIT structure for y-dimension updates
-        for (auto& a : pts)
-            swap(a.first, a.second);
-        sort(pts.begin(), pts.end());
-        for (auto& a : pts) {
-            swap(a.first, a.second);
-            for (int on = std::upper_bound(ord.begin(), ord.end(), a.first) - ord.begin(); on < fw.size(); on += on & -on)
-                if (coord[on].empty() || coord[on].back() != a.second)
-                    coord[on].push_back(a.second);
+    OfflineBIT2D(): n(0) {}
+    // n is the limit of the first dimension
+    OfflineBIT2D(int n, vector<array<int, 2>> &todo) : n(n), vals(n + 1), bit(n + 1) {
+        sort(begin(todo), end(todo), [](auto &a, auto &b) { return a[1] < b[1]; });
+
+        for (int i = 1; i <= n; i++) vals[i].push_back(0);
+        for (auto [r, c] : todo) {
+            r++, c++;
+            for (; r <= n; r += r & -r)
+                if (vals[r].back() != c) vals[r].push_back(c);
         }
-
-        for (int i = 0; i < fw.size(); i++)
-            fw[i].assign(coord[i].size() + 1, 0);
+        for (int i = 1; i <= n; i++) bit[i].resize(vals[i].size());
     }
 
-    T merge(T a, T b) {
-        return a + b;
+    void add(int r, int c, T val) {
+        r++, c++;
+        for (; r <= n; r += r & -r) {
+            int i = ind(vals[r], c);
+            for (; i < bit[r].size(); i += i & -i) bit[r][i] += val;
+        }
     }
 
-    // point update: adds value v at (x, y)
-    void upd(T x, T y, T v) {
-        for (int xx = upper_bound(ord.begin(), ord.end(), x) - ord.begin(); xx < fw.size(); xx += xx & -xx)
-            for (int yy = upper_bound(coord[xx].begin(), coord[xx].end(), y) - coord[xx].begin(); yy < fw[xx].size(); yy += yy & -yy)
-                fw[xx][yy] = merge(fw[xx][yy], v);
+    T rect_sum(int r, int c) {
+        r++, c++;
+        T sum = 0;
+        for (; r > 0; r -= r & -r) {
+            int i = ind(vals[r], c);
+            for (; i > 0; i -= i & -i) sum += bit[r][i];
+        }
+        return sum;
     }
 
-    // point query: returns sum from (0, 0) to (x, y)
-    T qry(T x, T y) {
-        T ans = 0;
-        for (int xx = upper_bound(ord.begin(), ord.end(), x) - ord.begin(); xx > 0; xx -= xx & -xx)
-            for (int yy = upper_bound(coord[xx].begin(), coord[xx].end(), y) - coord[xx].begin(); yy > 0; yy -= yy & -yy)
-                ans = merge(ans, fw[xx][yy]);
-        return ans;
-    }
-
-    // range query: returns sum for rectangle defined by bottom-left (x1, y1) and top-right (x2, y2)
-    T qry(T x1, T y1, T x2, T y2) {
-        return qry(x2, y2) - qry(x2, y1 - 1) - qry(x1 - 1, y2) + qry(x1 - 1, y1 - 1);
-    }
-
-    // range update: adds v to each point in the rectangle defined by bottom-left (x1, y1) and top-right (x2, y2)
-    void upd(T x1, T y1, T x2, T y2, T v) {
-        upd(x1, y1, v);
-        upd(x1, y2 + 1, -v);
-        upd(x2 + 1, y1, -v);
-        upd(x2 + 1, y2 + 1, v);
+    T rect_sum(int r1, int c1, int r2, int c2) {
+        return rect_sum(r2, c2) - rect_sum(r2, c1 - 1) - rect_sum(r1 - 1, c2) +
+               rect_sum(r1 - 1, c1 - 1);
     }
 };

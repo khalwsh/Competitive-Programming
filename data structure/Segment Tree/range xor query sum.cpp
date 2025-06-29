@@ -7,20 +7,6 @@ struct segmentTree {
             lazy[i].resize(4 * n);
         }
     }
-    void build(int node , int nl , int nr) {
-        if (nl == nr) {
-            for (int i = 0;i < BITS;i++) {
-                tree[i][node] = (from_root[LinearTree[nl]] >> i) & 1;
-            }
-            return;
-        }
-        int mid = nl + (nr - nl) / 2;
-        build(2 * node + 1 , nl , mid);
-        build(2 * node + 2 , mid + 1 , nr);
-        for (int i = 0;i < BITS;i++) {
-            tree[i][node] = tree[i][2 * node + 1] + tree[i][2 * node + 2];
-        }
-    }
     void prop(int node , int nl , int nr) {
         for (int i = 0; i < BITS; i++) {
             if (lazy[i][node] & 1) {

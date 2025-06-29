@@ -1,3 +1,4 @@
+// always use with long long , or adjust inside it to fix
 const ll inf = 1e18;
 template <class T>
 struct MCMF {

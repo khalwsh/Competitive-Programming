@@ -1,51 +1,37 @@
-const int mod = 1e9 + 7;
-int modProd(ll a, ll b) {
-    if (a < 0)
-        a += mod;
-    if (b < 0)
-        b += mod;
-    a %= mod;
-    b %= mod;
-    a *= b;
-    if (a >= mod)
-        a %= mod;
-    return a;
+const int  SQ = 1000000 , mod = 1e9 + 7;
+ll pre[SQ+1];
+unordered_map<ll,ll> dp;
 
-}
-
-int modPow(int a, ll b) {
-    int result = 1;
-    while (b) {
-        if (b & 1)
-            result = modProd(result, a);
-        a = modProd(a, a);
-        b >>= 1;
-    }
-    return result;
-}
-
-
-int modInverse(int a) {
-    return modPow(a, mod - 2);
-}
-
-
-int modDiv(int a, int b) {
-    return modProd(a, modInverse(b));
-}
-ll phi(ll d) {
-    ll res = d;
-    for (ll p = 2; p * p <= d; p++) {
-        if (d % p == 0) {
-            while (d % p == 0) d /= p;
-            res -= res / p;
+void build() {
+    vector<int> phi(SQ+1);
+    for (int i = 1; i <= SQ; i++) phi[i] = i;
+    for (int p = 2; p <= SQ; p++) {
+        if (phi[p] == p) {
+            for (int j = p; j <= SQ; j += p)
+                phi[j] -= phi[j] / p;
         }
     }
-    if (d > 1) res -= res / d;
-    return res % mod;
-}
+    pre[0] = 0;
+    for (int i = 1; i <= SQ; i++)
+        pre[i] = pre[i-1] + phi[i];
 
-ll sum(ll n) {
-    if (n == 1)return 1;
-    return modDiv(modProd(n, phi(n)), 2);
+    dp.reserve(2 * SQ);
+}
+ll S(ll n) {
+    if (n <= SQ)
+        return pre[n];
+    auto it = dp.find(n);
+    if (it != dp.end())
+        return it->second;
+
+    ll ans = n * (n + 1) / 2 % mod;
+    ll i = 2;
+    while (i <= n) {
+        ll q    = n / i;
+        ll last = n / q;
+        ans    -= (last - i + 1) * S(q);
+        ans = (ans % mod + mod) % mod;
+        i       = last + 1;
+    }
+    return dp[n] = ans;
 }

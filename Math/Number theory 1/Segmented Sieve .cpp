@@ -1,13 +1,12 @@
-vector<int>Primes;//have the primes themself
-vector<bool> segmentedSieve(int L, int R) {
-    // generate all primes up to sqrt(R)
+vector<ll>Primes;
+vector<bool> segmentedSieve(ll L, ll R) {
     int lim = (int)sqrt(R);
     vector<bool> mark(lim + 1, true);
     vector<int> primes;//have primes [2 , sqrt(R)]
-    for (int i = 2; i <= lim; ++i) {
+    for (ll i = 2; i <= lim; ++i) {
         if (mark[i]) {
             primes.emplace_back(i);
-            for (int j = i * i; j <= lim; j += i)
+            for (ll j = i * i; j <= lim; j += i)
                 mark[j] = false;
         }
     }

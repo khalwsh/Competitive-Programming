@@ -1,7 +1,7 @@
 const int N = 1e5 + 10;
 vector<int>adj[N] , nodes[N];
 int bg[N] , sz[N] , ans[N] , n;
-
+// remeber to init nodes , adj every test
 void dfs1(int u , int p) {
     bg[u] = -1;
     sz[u] = 1;

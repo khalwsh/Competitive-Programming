@@ -1,50 +1,52 @@
+template<typename T>
 struct SparseTable {
-    vector<vector<int>> sp;
-    vector<int> LOG;
-    vector<int> arr;
     int n, LG;
-    function<int(int, int)> f;
+    vector<int> LOG;
+    vector<vector<pair<T,int>>> sp;
+    function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> comb;
 
-    SparseTable(vector<int>& _arr, function<int(int, int)> lamda) : arr(_arr), f(lamda) {
-        n = (int)_arr.size();
-        LOG = vector<int>(n + 1);
-        LOG[0] = LOG[1] = 0;
-
-        for (int i = 2; i <= n; ++i) {
-            LOG[i] = LOG[i - 1] + !(i & (i - 1));
-        }
-
+    void init(const vector<T>& arr,function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> _comb){
+        n = arr.size();
+        comb = _comb;
+        LOG.assign(n+1, 0);
+        for(int i = 2; i <= n; ++i)
+            LOG[i] = LOG[i/2] + 1;
         LG = LOG[n];
-        sp = vector<vector<int>>(LG + 1, vector<int>(n));
+        sp.assign(LG+1, vector<pair<T,int>>(n));
+        for(int i = 0; i < n; ++i)
+            sp[0][i] = { arr[i], i };
 
         build();
     }
 
-    void build() { // O(n log(n))
-        sp[0] = arr;
-
-        for (int lvl = 1; lvl <= LG; ++lvl) {
-            for (int j = 0; j + (1 << lvl) <= n; ++j) {
-                sp[lvl][j] = f(sp[lvl - 1][j], sp[lvl - 1][j + (1 << (lvl - 1))]);
+    void build() {
+        for(int k = 1; k <= LG; ++k) {
+            int len = 1 << (k-1);
+            for(int i = 0; i + (1<<k) <= n; ++i) {
+                sp[k][i] = comb(sp[k-1][i], sp[k-1][i + len]);
             }
         }
     }
 
-    int Query1(int l, int r) { // O(1)
-        int lg = LOG[r - l + 1];
-        return f(sp[lg][l], sp[lg][r - (1 << lg) + 1]);
+    pair<T,int> query(int l, int r) const {
+        int len = r - l + 1;
+        int k = LOG[len];
+        return comb(sp[k][l], sp[k][r - (1<<k) + 1]);
     }
 
-    int Query2(int l, int r) { // O(LogN)
-        int lg = LOG[n];
-        int ans = 0;
-
-        for (int j = lg; ~j; --j) {
-            if ((1 << j) <= (r - l + 1)) {
-                ans = f(ans, sp[j][l]);
-                l += (1 << j);
+    pair<T,int> query_log(int l, int r) const {
+        int remaining = r - l + 1;
+        pair<T,int> res = {T(), -1};
+        for(int k = LG; k >= 0; --k) {
+            if ((1<<k) <= remaining) {
+                if (res.second == -1)
+                    res = sp[k][l];
+                else
+                    res = comb(res, sp[k][l]);
+                l += 1<<k;
+                remaining -= 1<<k;
             }
         }
-        return ans;
+        return res;
     }
 };

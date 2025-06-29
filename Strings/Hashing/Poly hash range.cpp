@@ -1,5 +1,3 @@
-// many collision ? make 2 hashes with different base and to make s[i] == s[j]
-// then hash1(s[i]) should equal hash1(s[j]) also hash2
 const uint64_t HashMod = (1ULL << 61) - 1;
 const uint64_t seed = chrono::system_clock::now().time_since_epoch().count();
 const uint64_t base = mt19937_64(seed)() % (HashMod / 3) + (HashMod / 3);
