@@ -4,11 +4,11 @@
 //      ans[idx] = bs.max_xor(l);
 // }
 struct Basis{
-    static const int LOG = 21;
-    int basis[LOG]{};
+    static const int LOG = 61;
+    ll basis[LOG]{};
     int lt[LOG];
     Basis(){ memset(lt , -1 , sizeof lt); }
-    void insert(int x , int ind){
+    void insert(ll x , int ind){
         for(int i = LOG - 1; i >= 0; --i){
             if(!(x >> i & 1)) continue;
             if(ind > lt[i]){
@@ -18,12 +18,14 @@ struct Basis{
             x ^= basis[i];
         }
     }
-    int max_xor(int ind){
-        int x = 0;
+    bool exist(ll x , int ind) {
         for(int i = LOG - 1; i >= 0; --i){
-            if((x >> i & 1) || lt[i] < ind) continue;
+            if(!(x >> i & 1)) continue;
+            if(ind > lt[i]){
+                return false;
+            }
             x ^= basis[i];
         }
-        return x;
+        return true;
     }
 };

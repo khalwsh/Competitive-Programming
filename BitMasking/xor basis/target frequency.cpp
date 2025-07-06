@@ -9,27 +9,29 @@ long long binpow(long long a, long long b, long long m) {
     }
     return res;
 }
-const int mod = 1000000007;
-const int BITs = 63;
-ull basis[BITs + 1];
-int comp_sz = 0;
-void insert(ull msk) {
-    for (int i = BITs; i >= 0;i--) {
-        if (!(msk >> i & 1))continue;
-        if (!basis[i]) {
-            comp_sz++;
-            basis[i] = msk;
-            return;
+const int mod = 998244353;
+struct Basis {
+    static const int BITs = 60;
+    ll basis[BITs + 1]{};
+    int comp_sz = 0;
+    void insert(ll msk) {
+        for (int i = BITs; i >= 0;i--) {
+            if (!(msk >> i & 1))continue;
+            if (!basis[i]) {
+                comp_sz++;
+                basis[i] = msk;
+                return;
+            }
+            msk ^= basis[i];
         }
-        msk ^= basis[i];
     }
-}
-ll get(ull mask , int total_elements) {
-    for (int i = BITs; i >= 0; --i) {
-        if (!(mask >> i & 1)) continue;
-        if (!basis[i])
-            return 0;
-        mask ^= basis[i];
+    ll get(ll mask , int total_elements) {
+        for (int i = BITs; i >= 0; --i) {
+            if (!(mask >> i & 1)) continue;
+            if (!basis[i])
+                return 0;
+            mask ^= basis[i];
+        }
+        return binpow(2 , total_elements - comp_sz , mod);
     }
-    return binpow(2 , total_elements - comp_sz , mod);
-}
+};
