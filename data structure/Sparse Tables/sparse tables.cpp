@@ -1,17 +1,15 @@
 template<typename T>
 struct SparseTable {
-    int n, LG;
-    vector<int> LOG;
+    const int LG = 20;
+    int n;
     vector<vector<pair<T,int>>> sp;
     function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> comb;
 
+
+    int log2_floor(int i) {return i ? __builtin_clzll(1) - __builtin_clzll(i) : 0;}
     void init(const vector<T>& arr,function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> _comb){
         n = arr.size();
         comb = _comb;
-        LOG.assign(n+1, 0);
-        for(int i = 2; i <= n; ++i)
-            LOG[i] = LOG[i/2] + 1;
-        LG = LOG[n];
         sp.assign(LG+1, vector<pair<T,int>>(n));
         for(int i = 0; i < n; ++i)
             sp[0][i] = { arr[i], i };
@@ -28,13 +26,12 @@ struct SparseTable {
         }
     }
 
-    pair<T,int> query(int l, int r) const {
-        int len = r - l + 1;
-        int k = LOG[len];
+    pair<T,int> query(int l, int r) {
+        int k = log2_floor(r - l + 1);
         return comb(sp[k][l], sp[k][r - (1<<k) + 1]);
     }
 
-    pair<T,int> query_log(int l, int r) const {
+    pair<T,int> query_log(int l, int r) {
         int remaining = r - l + 1;
         pair<T,int> res = {T(), -1};
         for(int k = LG; k >= 0; --k) {

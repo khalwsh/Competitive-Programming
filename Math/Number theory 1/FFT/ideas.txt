@@ -1,0 +1,45 @@
+1 - multiply 2 polynomials?
+just use the template directly and note the result size is summation of them
+
+
+
+2 - raise a polynomial to power n?
+do the binary exponentiation trick and it will be nlog(n) ^ 2
+
+
+
+3 - multiply 2 big integers ? 
+represent each one as polynomial and reverse them then multiply then normalize result
+
+
+4 - all pairs sums?
+square the polynomial , the polynomial here is (freq[i] * x ^ i)
+
+5 - all pairs difference?
+multiply the polynomial in it's negative version so A = (freq[i] * x ^ i) and B = (freq[i] * x ^ -i) but note you should add shift in the negative and your  result for difference equal i exist in i + shift
+
+
+6- all subarrays sum?
+do all pairs difference but on prefix sum instead of the array itself , because all sum array sums is (prefix[r] - prefix[l - 1]) don't forget 0.
+
+
+7 - all subsets sum?
+multiply n polynomials by taking and leaving , each poly on form (1 + x ^ a[i]).
+note if duplicates exist you can group them or you can leave them depend on how you want to handle them.
+implementation trick multiply in small to large manner use priority queue.
+
+
+
+
+8 - cyclic shift stuffs?
+you have 2 polynomials a , b and you want to answer queries about sum of a[i] * b[i + x] , given x we will represent the poly a as sum of a[i] * x ^ i , and b as sum of b[i] * x ^ -i.  then we multiply the 2 polynomials so the coefficient of res[k + shift] is the answer of query x = k
+
+
+
+
+
+
+
+
+
+
