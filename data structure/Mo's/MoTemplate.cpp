@@ -7,19 +7,19 @@ struct Query{
         return (n1 % 2) ? r > other.r : r < other.r;
     }
 };
-void add(int MoIdx){
-
+void add(int MoIdx , bool dir){
+    // dir 0 left add , dir 1 right add
 }
-void remove(int MoIdx){
-
+void remove(int MoIdx , bool dir){
+    // dir 0 left-remove , dir 1 right remove
 }
 void Mo(vector<Query> &queries){
     int MoLeft = 0,MoRight = -1;
     for(auto &q: queries){
-        while(MoRight < q.r) add(++MoRight);
-        while(MoLeft > q.l) add(--MoLeft);
-        while(MoRight > q.r) remove(MoRight--);
-        while(MoLeft < q.l) remove(MoLeft++);
-        //res[q.id] = cnt;
+        while(MoRight < q.r) add(++MoRight , 1);
+        while(MoLeft > q.l) add(--MoLeft , 0);
+        while(MoRight > q.r) remove(MoRight-- , 1);
+        while(MoLeft < q.l) remove(MoLeft++ , 0);
+//        res[q.id] = cnt;
     }
 }

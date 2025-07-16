@@ -37,7 +37,7 @@ you have 2 polynomials a , b and you want to answer queries about sum of a[i] * 
 
 
 
-
+9 - string matching ? for each letter you make polynomial that is one in indices this character exist , and same for the pattern then do relative distance , and res[i + shift] is how many matching characters from position i , not consecutive just matching , to answer wild card just add the wild card size to the result polynomial , any res[i + shift] >= pattern.size() means it is a start of matching
 
 
 
