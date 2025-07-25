@@ -1,21 +1,21 @@
-int computeGrundy(int x) {
-    if (x == 0) return 0;
-    vector<int> possibleMoves; // fill this array with all possible moves
-    for (auto &i : possibleMoves) {
-        possibleMoves.emplace_back(computeGrundy(i)); // Consider replacing x with new x
+int computeGrundy(int x){
+    if(x == 0) return 0;
+    int msb = 31 - __builtin_clz(x);
+    vector<int>moves;
+    for(int i = 1;i < (1 << msb);i++){
+        // moves array will have grundy of next possible positions
+        moves.emplace_back(computeGrundy(x - i));
     }
-
-    sort(possibleMoves.begin(), possibleMoves.end());
-    possibleMoves.erase(unique(possibleMoves.begin(), possibleMoves.end()), possibleMoves.end());
+    sort(moves.begin() , moves.end());
+    moves.erase(unique(moves.begin() , moves.end()) , moves.end());
 
     int mex = 0;
-    for (int move : possibleMoves) {
-        if (move == mex) {
+    for(auto &m : moves){
+        if(m == mex){
             mex++;
-        } else if (move > mex) {
+        }else if(m > mex){
             break;
         }
     }
-
-    return mex;
+    return ret = mex;
 }

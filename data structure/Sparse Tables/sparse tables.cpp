@@ -1,49 +1,43 @@
 template<typename T>
-struct SparseTable {
-    const int LG = 20;
-    int n;
-    vector<vector<pair<T,int>>> sp;
-    function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> comb;
-
-
-    int log2_floor(int i) {return i ? __builtin_clzll(1) - __builtin_clzll(i) : 0;}
-    void init(const vector<T>& arr,function<pair<T,int>(const pair<T,int>&, const pair<T,int>&)> _comb){
-        n = arr.size();
-        comb = _comb;
-        sp.assign(LG+1, vector<pair<T,int>>(n));
-        for(int i = 0; i < n; ++i)
-            sp[0][i] = { arr[i], i };
-
-        build();
+struct sparseTable {
+    int sz, lg;
+    vector<vector<T> > t;
+    function<T(T, T)> combine;
+ 
+    void init(int n, function<T(T, T)> F) {
+        sz = n;
+        lg = __lg(n);
+        combine = F;
+        t.resize(lg + 1, vector<T>(n + 1));
     }
-
-    void build() {
-        for(int k = 1; k <= LG; ++k) {
-            int len = 1 << (k-1);
-            for(int i = 0; i + (1<<k) <= n; ++i) {
-                sp[k][i] = comb(sp[k-1][i], sp[k-1][i + len]);
+ 
+    void build(vector<T> &v) {
+        for (int i = 0; i < sz; i++) {
+            // TODO 0-based
+            t[0][i] = v[i];
+        }
+        for (int p = 1; p <= lg; p++) {
+            for (int i = 0; i + (1 << p) <= sz; i++) {
+                t[p][i] = combine(t[p - 1][i], t[p - 1][i + (1 << (p - 1))]);
             }
         }
     }
-
-    pair<T,int> query(int l, int r) {
-        int k = log2_floor(r - l + 1);
-        return comb(sp[k][l], sp[k][r - (1<<k) + 1]);
+ 
+    // TODO 0-based
+    T query(int l, int r) {
+        assert(l <= r);
+        int k = 31 - __builtin_clz(r - l + 1);
+        return combine(t[k][l], t[k][r - (1 << k) + 1]);
     }
-
-    pair<T,int> query_log(int l, int r) {
-        int remaining = r - l + 1;
-        pair<T,int> res = {T(), -1};
-        for(int k = LG; k >= 0; --k) {
-            if ((1<<k) <= remaining) {
-                if (res.second == -1)
-                    res = sp[k][l];
-                else
-                    res = comb(res, sp[k][l]);
-                l += 1<<k;
-                remaining -= 1<<k;
-            }
+ 
+    T queryLog(int l, int r, T neutral) {
+        assert(l <= r);
+        T ret = neutral;
+        while (l <= r) {
+            int k = 31 - __builtin_clz(r - l + 1);
+            ret = combine(ret, t[k][l]);
+            l += (1 << k);
         }
-        return res;
+        return ret;
     }
 };

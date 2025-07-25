@@ -4,11 +4,6 @@ typedef long long ll;
 
 void PRE() {
     ios_base::sync_with_stdio(false);cin.tie(0);cout.tie(0);
-#ifndef ONLINE_JUDGE
-    freopen("in.txt", "r", stdin);
-    freopen("out.txt", "w", stdout);
-    freopen("error.txt", "w", stderr);
-#endif
 }
 using cd = complex<double>;
 const double PI = acos(-1);
