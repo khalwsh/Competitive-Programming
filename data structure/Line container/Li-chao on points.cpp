@@ -1,4 +1,4 @@
-// you build the Li-chao on the points x-coordinates and then add segments and query
+// you build the Li-chao on the points x-coordinates you will query on them and then add segments and query
 struct LiChao {
     struct Line { ll m, b; };
 private:
