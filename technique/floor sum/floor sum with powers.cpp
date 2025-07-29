@@ -86,6 +86,8 @@ node recurse(ll a, ll b, ll c, ll n) {
 
     return ans;
 }
+//   sum_{x=0}^{n} x ^ k1 * (floor((a*x + b) / c) ^ k2)
+//   for all k1 + k2 <= 10
 
 node simgcd(ll a, ll b, ll c, ll n) {
     return recurse(a, b, c, n);
