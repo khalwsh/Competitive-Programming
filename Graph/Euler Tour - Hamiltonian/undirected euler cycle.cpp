@@ -1,3 +1,5 @@
+// you need to check then get
+const int N = 2e5 + 10;
 int n,m;
 set<int>adj[N];
 int degree[N];

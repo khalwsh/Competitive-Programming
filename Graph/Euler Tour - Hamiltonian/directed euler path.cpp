@@ -1,3 +1,4 @@
+// tour size must be m + 1
 int n,m;
 vector<int>adj[N];
 vector<int>tour;

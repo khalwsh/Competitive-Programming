@@ -1,3 +1,4 @@
+// n is the limit of first dimension can't equal or greater
 template <typename T>
 struct OfflineBIT2D {
     int n;

@@ -15,7 +15,7 @@ struct SRQ {
 
     // our associative operator
     T comb(T x, T y) const {
-        return 0;
+        return x + y;
     }
 
     void build(int l, int r, int lvl) {

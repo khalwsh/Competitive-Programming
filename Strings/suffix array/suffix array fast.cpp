@@ -1,5 +1,6 @@
+// it doesn't consider empty suffix
 vector<int> buildSuffixArray(string s) {
-    int n = s.size(); s += "$";
+    int n = s.size(); s += char(0);
     vector<int> p(n+1), c(n+1), c1(n+1), cnt(max(256, n+1)), p1(n+1);
     for(int i = 0; i <= n; i++) p[i] = i, c[i] = s[i];
     
@@ -27,7 +28,7 @@ vector<int> buildSuffixArray(string s) {
     for(int i = 1; i <= n; i++) res.push_back(p[i]);
     return res;
 }
- 
+// lcp[i] = longest common prefix (suf[i] , suf[i + 1]) 
 vector<int> Kasai(string const& s, vector<int> const& p) {
     int n = s.size();
     vector<int> rank(n, 0);

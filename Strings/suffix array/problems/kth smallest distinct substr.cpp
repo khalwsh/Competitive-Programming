@@ -1,91 +1,66 @@
-#include <bits/stdc++.h>
-using namespace std;
-typedef long long ll;
-string s;
-vector<int> suf, group, NewGroup, tempSuf;
-int n , curLen = 0;
-void countingSort(int maxGroup) {
-    vector<int> count(maxGroup + 1, 0);
-    tempSuf.resize(n);
+// it doesn't consider empty suffix
+vector<int> buildSuffixArray(string s) {
+    int n = s.size(); s += char(0);
+    vector<int> p(n+1), c(n+1), c1(n+1), cnt(max(256, n+1)), p1(n+1);
+    for(int i = 0; i <= n; i++) p[i] = i, c[i] = s[i];
 
-    for (int i = 0; i < n; i++) {
-        count[group[min(n - 1, suf[i] + curLen)]]++;
-    }
-    for (int i = 1; i <= maxGroup; i++) {
-        count[i] += count[i - 1];
-    }
-    for (int i = n - 1; i >= 0; i--) {
-        tempSuf[--count[group[min(n - 1, suf[i] + curLen)]]] = suf[i];
-    }
-    for (int i = 0; i < n; i++) {
-        suf[i] = tempSuf[i];
-    }
-}
-void radixSort() {
-    int maxGroup = max(n, 256);  // Initial max group value for radix sort
+    for(int k = 0; (1 << k) <= n; k++) {
+        int len = 1 << k;
 
-    // Sort by the second key (group[i + curLen])
-    countingSort(maxGroup);
+        fill(cnt.begin(), cnt.end(), 0);
+        for(int i = 0; i <= n; i++) cnt[c[min(n, p[i] + len)]]++;
+        for(int i = 1; i < cnt.size(); i++) cnt[i] += cnt[i-1];
+        for(int i = n; i >= 0; i--) p1[--cnt[c[min(n, p[i] + len)]]] = p[i];
 
-    // Sort by the first key (group[i])
-    curLen = 0;
-    countingSort(maxGroup);
-}
-void build() {
-    suf.clear();
-    group.clear();
-    NewGroup.clear();
-    n = (int)s.size();
-    NewGroup.resize(n + 1);
-    n++;
-    for (int i = 0; i < n; i++) {
-        suf.emplace_back(i);
-        group.emplace_back(s[i]);
+        fill(cnt.begin(), cnt.end(), 0);
+        for(int i = 0; i <= n; i++) cnt[c[p1[i]]]++;
+        for(int i = 1; i < cnt.size(); i++) cnt[i] += cnt[i-1];
+        for(int i = n; i >= 0; i--) p[--cnt[c[p1[i]]]] = p1[i];
+
+        c1[p[0]] = 0;
+        for(int i = 1; i <= n; i++)
+            c1[p[i]] = c1[p[i-1]] + (c[p[i]] != c[p[i-1]] || c[min(n,p[i]+len)] != c[min(n,p[i-1]+len)]);
+        c.swap(c1);
+        if(c[p[n]] == n) break;
     }
-    for (int len = 1;; len *= 2) {
-        curLen = len;
-        radixSort();
-        for (int i = 1; i < n; i++) {
-            NewGroup[i] = NewGroup[i - 1] + (group[suf[i - 1]] != group[suf[i]] || group[suf[i - 1] + len] != group[suf[i] + len]);
-        }
-        for (int i = 0; i < n; i++) {
-            group[suf[i]] = NewGroup[i];
-        }
-        if (NewGroup[n - 1] == n - 1) break;
-    }
+
+    vector<int> res;
+    for(int i = 1; i <= n; i++) res.push_back(p[i]);
+    return res;
 }
-vector<int>lcp;
-void BuildLcp() {
-    lcp.resize(n);
+// lcp[i] = longest common prefix (suf[i] , suf[i + 1])
+vector<int> Kasai(string const& s, vector<int> const& p) {
+    int n = s.size();
+    vector<int> rank(n, 0);
+    for(int i = 0; i < n; i++) rank[p[i]] = i;
     int k = 0;
-    for (int i = 0; i < n - 1; i++) {
-        int pi = group[i] - 1; // Corrected index for accessing the previous suffix
-        int j = suf[pi];
-        while (s[j + k] == s[i + k]) k++;
-        lcp[pi] = k; // Store the LCP value at the correct index
-        if (k > 0) k--;
-    }
-
-}
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);cout.tie(nullptr);
-    cin>>s;
-    ll k;cin>>k;
-    n = s.size();
-    build();
-    BuildLcp();
-    if(k <= s.size() - suf[1]) {
-        cout<<s.substr(suf[0] , k);
-        exit(0);
-    }
-    k -= s.size() - suf[1];
-    for(int i = 2;i < suf.size();i++) {
-        int nw = s.size() - suf[i] - lcp[i - 1];
-        if(k <= nw) {
-            cout<<s.substr(suf[i] , k + lcp[i - 1]);
-            exit(0);
+    vector<int> lcp(n-1, 0);
+    for (int i = 0; i < n; i++) {
+        if(rank[i] == n - 1) {
+            k = 0;
+            continue;
         }
-        k -= nw;
+        int j = p[rank[i] + 1];
+        while (i + k < n && j + k < n && s[i+k] == s[j+k]) k++;
+        lcp[rank[i]] = k;
+        if(k) k--;
     }
+    return lcp;
+}
+string kth(string &s , ll k) {
+    int n = s.size();
+    auto suf = buildSuffixArray(s);
+    auto lcp = Kasai(s , suf);
+    ll dis = n - suf[0];
+    if (dis >= k) {
+        return s.substr(suf[0] , k);
+    }
+    for (int i = 1;i < suf.size();i++) {
+        dis += n - suf[i] - lcp[i - 1];
+        if (dis >= k) {
+            ll d = k - (dis - (n - suf[i] - lcp[i - 1]));
+            return s.substr(suf[i] , lcp[i - 1] + d);
+        }
+    }
+    return "-1";
 }
