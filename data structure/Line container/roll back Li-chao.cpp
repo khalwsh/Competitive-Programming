@@ -1,93 +1,99 @@
-const ll DEFAULT = LLONG_MAX;  // Use -LLONG_MAX for max version
+// Li Chao tree on a fixed set of x-coordinates (discrete points).
+// Supports inserting lines (either tracked or untracked) and rolling back the last tracked insertion.
+// Query returns the minimum value at a known x in the set.
+//
 
-// A line: y = m * x + c
+const ll INFLL = (1LL << 62);
 struct Line {
-    ll m, c;
-    Line(ll m = 0, ll c = DEFAULT) : m(m), c(c) {}
-    ll operator()(ll x) const { return m * x + c; }
+    ll m = 0, b = INFLL;
+    Line() = default;
+    Line(ll _m, ll _b) : m(_m), b(_b) {}
+    ll eval(ll x) const {
+        __int128 v = ( (__int128)m * x + (__int128)b );
+        if (v > INFLL) return INFLL;
+        if (v < -INFLL) return -INFLL;
+        return (ll)v;
+    }
 };
 
-// Node of the Li Chao Tree
-struct Node {
-    Line line;
-    Node *left = nullptr, *right = nullptr;
-    Node(Line l = Line()) : line(l) {}
+struct LiChaoRollback {
+private:
+    void record_change(int node) {
+        changes.push_back({node, seg[node]});
+    }
+    void insert_impl(int node, int l, int r, Line newline, bool track) {
+        int mid = (l + r) >> 1;
+        ll xl = xs[l], xm = xs[mid];
+
+        Line cur = seg[node];
+
+        bool leftBetter = newline.eval(xl) < cur.eval(xl);
+        bool midBetter  = newline.eval(xm) < cur.eval(xm);
+
+        if (midBetter) {
+            if (track) record_change(node);
+            swap(seg[node], newline);
+            cur = seg[node];
+        }
+
+        if (l == r) return;
+
+        if (leftBetter != midBetter) {
+            insert_impl(node << 1, l, mid, newline, track);
+        } else {
+            insert_impl(node << 1 | 1, mid + 1, r, newline, track);
+        }
+    }
+
+    ll query_impl(int node, int l, int r, int idx, ll x) const {
+        ll res = seg[node].eval(x);
+        if (l == r) return res;
+        int mid = (l + r) >> 1;
+        if (idx <= mid) return min(res, query_impl(node << 1, l, mid, idx, x));
+        else return min(res, query_impl(node << 1 | 1, mid + 1, r, idx, x));
+    }
+public:
+    int n = 0;
+    vector<ll> xs;
+    vector<Line> seg;
+    struct Change { int node; Line old; };
+    vector<Change> changes;
+    vector<int> checkpoints;
+    LiChaoRollback() = default;
+
+    void init(const vector<ll>& coords) {
+        xs = coords;
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+        n = (int)xs.size();
+        seg.assign(4 * max(1, n), Line());
+        changes.clear();
+        checkpoints.clear();
+    }
+
+    void insert_tracked(const Line& ln) {
+        checkpoints.push_back((int)changes.size());
+        if (n) insert_impl(1, 0, n - 1, ln, true);
+    }
+
+    void insert_untracked(const Line& ln) {
+        if (n) insert_impl(1, 0, n - 1, ln, false);
+    }
+
+    void rollback() {
+        if (checkpoints.empty()) return;
+        int target = checkpoints.back();
+        checkpoints.pop_back();
+        while ((int)changes.size() > target) {
+            Change ch = changes.back();
+            changes.pop_back();
+            seg[ch.node] = ch.old;
+        }
+    }
+
+    ll query(ll x) const {
+        if (n == 0) return INFLL;
+        int idx = int(lower_bound(xs.begin(), xs.end(), x) - xs.begin());
+        return query_impl(1, 0, n - 1, idx, x);
+    }
 };
-
-// Change record for rollback
-struct Change {
-    Node** pointer;  // Address of the pointer we modified
-    Node* oldValue;  // What it was before
-};
-
-vector<Change> changeLog;        // All changes
-vector<int> insertCheckpoints;   // Checkpoints before each insert()
-
-// Record a change (before applying it)
-void record(Node*& ptr) {
-    changeLog.push_back({&ptr, ptr});
-}
-
-// Rollback to a specific checkpoint
-void rollbackTo(int checkpoint) {
-    while ((int)changeLog.size() > checkpoint) {
-        auto [ptr, oldVal] = changeLog.back();
-        *ptr = oldVal;
-        changeLog.pop_back();
-    }
-}
-
-
-
-// Public API to rollback the last insert operation
-void rollbackLastInsert() {
-    if (!insertCheckpoints.empty()) {
-        rollbackTo(insertCheckpoints.back());
-        insertCheckpoints.pop_back();
-    }
-}
-
-// Insert a new line into the tree
-void insert_impl(Line newLine, Node*& root, ll l, ll r) {
-    if (!root) {
-        record(root);
-        root = new Node(newLine);
-        return;
-    }
-
-    ll m = (l + r) / 2;
-    bool lef = newLine(l) < root->line(l);
-    bool mid = newLine(m) < root->line(m);
-
-    if (mid)
-        swap(root->line, newLine);
-
-    if (r - l == 1)
-        return;
-
-    if (lef != mid) {
-        record(root->left);
-        insert_impl(newLine, root->left, l, m);
-    } else {
-        record(root->right);
-        insert_impl(newLine, root->right, m, r);
-    }
-}
-
-// Public API to start a tracked insertion
-void insert(Line newLine, Node*& root, ll l, ll r) {
-    insertCheckpoints.push_back(changeLog.size());
-    insert_impl(newLine , root , l , r);
-}
-
-// Query the minimum value at point x
-ll query(ll x, Node* root, ll l, ll r) {
-    if (!root) return DEFAULT;
-    ll m = (l + r) / 2;
-    if (r - l == 1)
-        return root->line(x);
-    if (x < m)
-        return min(root->line(x), query(x, root->left, l, m));
-    else
-        return min(root->line(x), query(x, root->right, m, r));
-}
