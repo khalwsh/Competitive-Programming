@@ -1,4 +1,5 @@
 // Monotonic deque for sliding-window minimum
+const ll POS_INF = 1e18;
 struct DequeMin {
     deque<pair<int, ll>> dq;
     void push(int idx, ll val) {

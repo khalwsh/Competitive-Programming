@@ -1,4 +1,5 @@
 // Monotonic deque for sliding-window maximum
+const ll NEG_INF = -1e18;
 struct DequeMax {
     deque<pair<int, ll>> dq;
     void push(int idx, ll val) {
