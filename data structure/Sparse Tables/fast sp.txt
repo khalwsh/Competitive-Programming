@@ -1,0 +1,19 @@
+const int N = 3e5+9;
+ll spt[N][20];
+
+int comb(int a , int b){ return max(a ,b); }
+ 
+void init(){
+    for(int i = 1; i <= n; ++i) spt[i][0] = i;
+    for(int k = 1; (1<<k) <= n; ++k){
+        for(int i = 1; i + (1<<k) - 1 <= n; ++i){
+            spt[i][k] = comb(spt[i][k-1] , spt[i+(1<<(k-1))][k-1]);
+        }
+    }
+}
+ 
+ll qry(int l , int r){
+    int k = 31 - __builtin_clz(r-l+1);
+    return comb(spt[l][k] , spt[r-(1<<k)+1][k]);
+}
+ 
