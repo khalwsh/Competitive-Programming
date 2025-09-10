@@ -13,6 +13,10 @@ struct Treap {
         priority = randomLongLong(1 , 1e18);
         kids[0] = kids[1] = nullptr;
     }
+    ~Treap() {
+        delete kids[0];
+        delete kids[1];
+    }
 };
 void recalc(Treap* me) {
     if (me == nullptr) return;
