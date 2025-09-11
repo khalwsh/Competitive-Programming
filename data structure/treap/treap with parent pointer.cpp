@@ -1,10 +1,12 @@
+static std::mt19937_64 RNG(
+    (unsigned) chrono::steady_clock::now().time_since_epoch().count()
+);
 long long randomLongLong(long long l, long long r) {
-    random_device rd;
-    mt19937_64 rng(rd());
-    uniform_int_distribution<long long> dist(l, r);
-    return dist(rng);
+    std::uniform_int_distribution<long long> dist(l, r);
+    return dist(RNG);
 }
 // init id every test , the nodes return from split make it leader of set
+// if I have no parent I am parent of myself
 int id = 1;
 struct Treap {
     ll val , priority , size;
@@ -90,4 +92,16 @@ Treap* get_parent(Treap* me) {
         if (me -> parent -> Id == me -> Id) return me;
         me = me -> parent;
     }
+}
+int pos(Treap* cur) {
+    if (cur == nullptr) return -1;
+    ll s = Size(cur -> kids[0]);
+    while (cur -> parent != cur) {
+        if (cur -> parent -> kids[1] && cur -> parent -> kids[1] -> priority == cur -> priority) {
+            // I am right child
+            s += 1 + Size(cur -> parent -> kids[0]);
+        }
+        cur = cur -> parent;
+    }
+    return s;
 }
