@@ -1,158 +1,76 @@
 struct AhoCorasick {
-    // make sure the patterns are unique
-    /*  // iterating over the outlinks
-        int u = 0;
-        for (int i = 0; i < n; i++) {
-            char c = s[i];
-            u = aho.advance(u, c);
-            for (int node = u; node; node = aho.out_link[node]) {
-                for (auto PatIdx : aho.out[node]) {
-                    res[PatIdx]++;
-                }
-            }
-        }
-     */
-    int N, P;
-    const int A = 128;
-    vector <vector <int>> next;
-    vector <int> link, out_link;
-    vector <vector <int>> out;
-    AhoCorasick(): N(0), P(0) {node();}
-    int node() {
-        next.emplace_back(A, 0);
-        link.emplace_back(0);
-        out_link.emplace_back(0);
-        out.emplace_back(0);
-        return N++;
-    }
-    inline int get (char c) {
-        return c;
-    }
-    int add_pattern (const string &T) {
-        int u = 0;
-        for (auto c : T) {
-            if (!next[u][get(c)]) next[u][get(c)] = node();
-            u = next[u][get(c)];
-        }
-        out[u].push_back(P);
-        return P++;
-    }
-    void compute() {
-        queue <int> q;
-        for (q.push(0); !q.empty();) {
-            int u = q.front(); q.pop();
-            for (int c = 0; c < A; ++c) {
-                int v = next[u][c];
-                if (!v) next[u][c] = next[link[u]][c];
-                else {
-                    link[v] = u ? next[link[u]][c] : 0;
-                    out_link[v] = out[link[v]].empty() ? out_link[link[v]] : link[v];
-                    q.push(v);
-                }
-            }
-        }
-    }
-    int advance (int u, char c) {
-        while (u && !next[u][get(c)]) u = link[u];
-        u = next[u][get(c)];
-        return u;
-    }
-    vector<vector<int>> AllPos(string &text , vector<string>&patterns) {
-        P = 0;
-        int n = (int)patterns.size();
-        map<string,int>last;
-        vector<int>ans(n);
-        for(int i = 0;i < patterns.size();i++) {
-            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "";
-            else last[patterns[i]] = i , ans[i] = i;
-        }
-        vector<int> len(n + 3, 0);
-        for (auto &pat: patterns) {
-            if(pat == "")P++;
-            else len[add_pattern(pat)] = (int)pat.size();
-        }
-        compute();
-        vector<vector<int>>res(n);
-        n = (int)text.size();
-        int u = 0;
-        for (int i = 0; i < n; i++) {
-            char c = text[i];
-            u = advance(u, c);
-            for (int node = u; node; node = out_link[node]) {
-                for (auto PatIdx : out[node]) {
-                    res[PatIdx].emplace_back(i - len[PatIdx] + 1);
-                }
-            }
-        }
-        for(int i = 0;i < res.size();i++) {
-            res[i] = res[ans[i]];
-        }
-        return res;
-    }
-    vector<int> match(string &text , vector<string>&patterns) {
-        P = 0;
-        int n = (int)patterns.size();
-        map<string,int>last;
-        vector<int>ans(n);
-        for(int i = 0;i < patterns.size();i++) {
-            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "$";
-            else last[patterns[i]] = i , ans[i] = i;
-        }
-        vector<int> len(n + 3, 0);
-        for (auto &pat: patterns) {
-            if(pat == "$")P++;
-            else len[add_pattern(pat)] = (int)pat.size();
-        }
-        compute();
-        vector<int>res(n);
-        n = (int)text.size();
-        int u = 0;
-        for (int i = 0; i < n; i++) {
-            char c = text[i];
-            u = advance(u, c);
-            for (int node = u; node; node = out_link[node]) {
-                for (auto PatIdx : out[node]) {
-                    res[PatIdx]++;
-                }
-            }
-        }
-        for(int i = 0;i < res.size();i++) {
-            res[i] = res[ans[i]];
-        }
-        return res;
-    }
-    vector<int> FirstPos(string &text , vector<string>&patterns) {
-        P = 0;
-        int n = (int)patterns.size();
-        map<string,int>last;
-        vector<int>ans(n);
-        for(int i = 0;i < patterns.size();i++) {
-            if(last.count(patterns[i]))ans[i] = last[patterns[i]] , patterns[i] = "";
-            else last[patterns[i]] = i , ans[i] = i;
-        }
-        vector<int> len(n + 3, 0);
-        for (auto &pat: patterns) {
-            if(pat == "")P++;
-            else len[add_pattern(pat)] = (int)pat.size();
-        }
-        compute();
-        vector<int>res(n , 1e9);
-        n = (int)text.size();
-        int u = 0;
-        for (int i = 0; i < n; i++) {
-            char c = text[i];
-            u = advance(u, c);
-            for (int node = u; node; node = out_link[node]) {
-                for (auto PatIdx : out[node]) {
-                    res[PatIdx] = min(res[PatIdx] , i - len[PatIdx] + 1);
-                }
-            }
-        }
-        for(int i = 0;i < res.size();i++)res[i] = (res[i] == 1e9 ? -2 : res[i]);
+    /// Modify these values based on input alphabet
+    /// alpha: size of alphabet (26 for lowercase letters)
+    /// first: first character of alphabet ('a' for lowercase letters)
+    enum { alpha = 26, first = 'a' };
 
-        for(int i = 0;i < res.size();i++) {
-            res[i] = res[ans[i]];
+    struct Node {
+        int nxt[alpha]; /// Next state transition for each character
+        int suflink = 0; /// Suffix link points to longest proper suffix
+        int start = -1; /// Start index of pattern in original array
+        int end = -1; /// Index in backup of longest matched suffix pattern
+        int nmatches = 0; ///Count of matched strings ending at this node
+        int lvl = 0;
+
+        Node(int v) {
+            memset(nxt, v, sizeof nxt);
         }
-        return res;
+    };
+
+    vector<Node> v; /// Stores all nodes of the trie
+    vector<int> backup;
+       /// Stores pattern indices with longest matching suffixes
+       /// Returns -1 if no match exists
+       /// Note: All patterns must be distinct when using backup
+
+    /// Inserts a pattern into the automaton
+    /// Time: O(|s|) where |s| is pattern length
+    void insert(string &s, int id) {
+        int node = 0;
+        int clvl = 0;
+        for (auto &c: s) {
+            int &m = v[node].nxt[c - first];
+
+            ++clvl;
+            if (m == -1) {
+                node = m = v.size();
+                v.emplace_back(-1);
+                v.back().lvl = clvl;
+            } else node = m;
+        }
+        if (v[node].end == -1) v[node].start = id;
+        backup.emplace_back(v[node].end);
+        v[node].end = id;
+        v[node].nmatches++;
+    }
+
+    /// Builds Aho-Corasick automaton from patterns
+    /// Time: O(26N) where N = sum of all pattern lengths
+    /// - Creates suffix links
+    /// - Allows duplicate patterns
+    /// - For large alphabets, split symbols into chunks with sentinel bits
+    AhoCorasick(vector<string> &pat) : v(1, -1) {
+        for (int i = 0; i < pat.size(); ++i)
+            insert(pat[i], i);
+        v[0].suflink = v.size();
+        v.emplace_back(0);
+        queue<int> q;
+        q.push(0);
+        while (q.size()) {
+            int node = q.front();
+            q.pop();
+            int prv = v[node].suflink;
+
+            for (int i = 0; i < alpha; ++i) {
+                int &x = v[node].nxt[i], y = v[prv].nxt[i];
+                if (x == -1) x = y;
+                else {
+                    v[x].suflink = y;
+                    (v[x].end == -1 ? v[x].end : backup[v[x].start]) = v[y].end;
+                    v[x].nmatches += v[y].nmatches;
+                    q.push(x);
+                }
+            }
+        }
     }
 };

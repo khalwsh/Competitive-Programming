@@ -1,21 +1,11 @@
-int computeGrundy(int x){
-    if(x == 0) return 0;
-    int msb = 31 - __builtin_clz(x);
-    vector<int>moves;
-    for(int i = 1;i < (1 << msb);i++){
-        // moves array will have grundy of next possible positions
-        moves.emplace_back(computeGrundy(x - i));
-    }
-    sort(moves.begin() , moves.end());
-    moves.erase(unique(moves.begin() , moves.end()) , moves.end());
-
+int grundy(int x) {
+    if (x == 0) return 0;
+    // remember to memo
+    vector<int> v;
+    // fill v with the grundy(nx) where nx is any next position you can go to
+    sort(v.begin(), v.end());
+    v.erase(unique(v.begin(), v.end()), v.end());
     int mex = 0;
-    for(auto &m : moves){
-        if(m == mex){
-            mex++;
-        }else if(m > mex){
-            break;
-        }
-    }
-    return ret = mex;
+    while (mex < v.size() && v[mex] == mex) ++mex;
+    return mex;
 }
