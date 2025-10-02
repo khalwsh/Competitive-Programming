@@ -1,4 +1,7 @@
 struct Manacher {
+// P[i] : the radius of the longest palindrome centered at t[i] , t is one base
+// P[2 * j + 1] : palindrome info for jth character in string s , zero base
+// P[2 * j + 2] : palindrome info for the gap between j , j + 1 in string s
 	vector<int>p;
 	void build(string &s) {
 		string t;

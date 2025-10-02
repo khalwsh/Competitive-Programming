@@ -1,6 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
 struct P { ll x,y; };
 
 static inline ll dsq(const P &a, const P &b){
@@ -80,20 +77,4 @@ ll max_pair(vector<P>& pts) {
         ans = max(ans, dsq(H[ni], H[j]));
     }
     return ans;
-}
-
-int main(){
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    int n;
-    cin >> n;
-    vector<P> pts(n);
-    for (int i = 0; i < n; i++)
-        cin >> pts[i].x >> pts[i].y;
-    auto a = pts;
-    auto b = pts;
-    ll mn = closest_pair(a);
-    ll mx = max_pair(b);
-    cout << mn << " " << mx << "\n";
 }
