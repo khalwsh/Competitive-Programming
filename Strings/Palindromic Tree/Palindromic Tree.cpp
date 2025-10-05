@@ -1,3 +1,6 @@
+// to know at each position the longest palindrome end here
+// in the push if push failed return t[last].len , 
+// otherwise return t[sz].len
 struct PalindromicTree {
     // len (length of the maximum palindromic suffix at that position)
     // link (fail link the next smaller palindrome) [node index]
