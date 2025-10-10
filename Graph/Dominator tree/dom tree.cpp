@@ -2,7 +2,7 @@
 // Defenition : there is an edge from u to v if every path from source to v pass through u
 // idom[i] = immediate dominator of node with DFS index i (i.e., dominator-tree parent in DFS-index space).
 // domTree[u] adjacency list of u in the dominator tree.
-
+// id[u] : will be 0 if the source is not connected to node u
 // Usage example of Dominator Tree:
 // init(n);
 // add directed edges to g[u] with u in [1..n];
@@ -13,7 +13,7 @@ const int N = 200000 + 5;
 vector<int> g[N];
 vector<int> rg[N], bucket[N];
 vector<int> domTree[N];
-int sdom[N], par[N], idom[N], dsu[N], label[N];
+int sdom[N], par[N], idom[N], dsu[N], label[N], pdom[N];
 int id[N], rev_[N], T;
 
 void init(int n) {
@@ -25,7 +25,7 @@ void init(int n) {
         domTree[i].clear();
         id[i] = 0;
         rev_[i] = 0;
-        sdom[i] = par[i] = idom[i] = dsu[i] = label[i] = 0;
+        sdom[i] = par[i] = idom[i] = dsu[i] = label[i] = pdom[i] = 0;
     }
 }
 
@@ -70,11 +70,12 @@ void build(int root) {
 
         if (i > 1) dsu[i] = par[i];
     }
-
+    pdom[root] = root;
     for (int i = 2; i <= n; ++i) {
         if (idom[i] != sdom[i]) idom[i] = idom[idom[i]];
         int u = rev_[idom[i]];
         int v = rev_[i];
+        pdom[v] = u;
         domTree[u].push_back(v);
         domTree[v].push_back(u);
     }
