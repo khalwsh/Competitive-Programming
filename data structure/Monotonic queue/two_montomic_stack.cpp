@@ -1,10 +1,15 @@
 /*
-  MonoQueue / MonoStack — two-stack queue that keeps a precomputed aggregate
-  per stack node so you can get the aggregate of the whole queue in O(1).
-  Queue = [out (front)] ++ [in (back)]; get() = merge(out.get(), in.get()).
-  Amortized O(1) push/pop/get (each element moved at most once).
-  Requirements for merge: associative & closed (identity helpful); should be O(1).
-  Examples: max, min, sum, bitwise OR/AND/XOR, string concat (order preserved).
+  A data structure that supports:
+    - push_back(x): add element to the back
+    - pop_front(): remove element from the front
+    - get(): return aggregate of all current elements in O(1)
+
+  Implemented using two MonoStacks, each storing prefix aggregates.
+  Queue = [out (front)] ++ [in (back)], total = merge(out.get(), in.get()).
+  Amortized O(1) per operation.
+
+  merge must be associative & closed (identity optional, O(1) cost).
+  Works for: sum, max, min, bitwise OR/AND/XOR, string concat, etc.
 */
 
 template <typename T> struct MonoStack {
