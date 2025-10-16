@@ -1,4 +1,5 @@
 // kth substring , Not unique , build cnt and propagate first
+// remember to memset dp
 ll dp[MAXN];
 
 ll solve(int v) {
