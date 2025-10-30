@@ -1,74 +1,93 @@
-// Convex Hull Trick (Monotonic Insertion & Queries)
-// -----------------------------------------------------
-// Usage notes:
-// 1. Lines must be added in strictly monotonic order of slope k (either all increasing or all decreasing).
-// 2. For arbitrary x queries, use get(x), which is O(log n) via binary search.
-// 3. For amortized O(1) queries when x values follow a monotonic pattern matching your slope order:
-//    • If slopes k are added in increasing order, x queries must be non-decreasing for get_mono(x).
-//    • If slopes k are added in decreasing order, x queries must be non-increasing for get_mono(x).
-//    Use get_mono(x) to advance (or retreat) the pointer in O(1) amortized time.
+/*
+ * Convex Hull Trick (Monotonic Insertion & Queries)
+ *
+ * This implementation is for cases where lines are added with strictly monotonic
+ * slopes (either always increasing or decreasing). It can find the minimum or
+ * maximum value of y = kx + b for a given x.
+ *
+ * --- Usage ---
+ * 1.  Instantiate the struct: `CHT cht(is_min_mode);`
+ * - `is_min_mode = false` (default) for maximum queries.
+ * - `is_min_mode = true` for minimum queries.
+ *
+ * 2.  Add lines with `add_line(k, b)`. Slopes `k` MUST be monotonic.
+ *
+ * 3.  Query the hull for the optimal value at a given x-coordinate:
+ * - `get(x)`: O(log n) query for any x.
+ * - `get_mono(x)`: Amortized O(1) query for monotonic x. The required
+ * query direction depends on the mode:
+ *
+ * ### MAX Mode (is_min_mode = false)
+ * The query direction for `x` must MATCH the slope direction for `k`.
+ * - Increasing `k` ⇒ non-decreasing `x`
+ * - Decreasing `k` ⇒ non-increasing `x`
+ *
+ * ### MIN Mode (is_min_mode = true)
+ * The query direction for `x` must be the OPPOSITE of the slope direction for `k`.
+ * This is because the slopes are internally negated (`k` becomes `-k`).
+ * - Increasing original `k` ⇒ non-increasing `x`
+ * - Decreasing original `k` ⇒ non-decreasing `x`
+ *
+ * --- Complexity ---
+ * - Add Line: Amortized O(1)
+ * - Arbitrary Query (`get`): O(log n)
+ * - Monotonic Query (`get_mono`): Amortized O(1)
+ */
 
-#include <bits/stdc++.h>
-using namespace std;
-
-typedef int ftype;
+typedef ll ftype;
 typedef complex<ftype> point;
+
+
 #define x real
 #define y imag
 
-// Dot product: a.x*b.x + a.y*b.y
-ftype dot(point a, point b) {
-    return (conj(a) * b).x();
-}
+ftype dot(point a, point b) { return (conj(a) * b).x(); }
+ftype cross(point a, point b) { return (conj(a) * b).y(); }
 
-// 2D cross product (perp dot): a.x*b.y - a.y*b.x
-ftype cross(point a, point b) {
-    return (conj(a) * b).y();
-}
 
-static vector<point> hull, vecs;
-static size_t mono_ptr = 0; // pointer for monotonic queries
+struct CHT {
+    vector<point> hull, vecs;
+    size_t mono_ptr = 0;
+    bool is_min = false;
 
-// Add a line y = k*x + b to the hull.
-// Slopes (k) must be monotonic on insertion.
-void add_line(ftype k, ftype b) {
-    point nw = {k, b};
-    // Remove last while new line breaks convexity
-    while (!vecs.empty() && dot(vecs.back(), nw - hull.back()) < 0) {
-        hull.pop_back();
-        vecs.pop_back();
+    CHT(bool is_min_mode = false) : is_min(is_min_mode) {}
+
+    void add_line(ftype k, ftype b) {
+        if (is_min) k = -k, b = -b;
+        point nw = {k, b};
+        while (hull.size() >= 2 &&
+               cross(hull.back() - hull[hull.size()-2], nw - hull.back()) >= 0)
+            hull.pop_back(), vecs.pop_back();
+        if (!hull.empty()) vecs.push_back(point(0,1)*(nw - hull.back()));
+        hull.push_back(nw);
     }
-    if (!hull.empty()) {
-        // Store perpendicular vector (rotated +90°) for binary search
-        vecs.push_back(point(0,1) * (nw - hull.back()));
-    }
-    hull.push_back(nw);
-}
 
-// Query maximum at x: O(log n)
-// Use for arbitrary (non-monotonic) x queries.
-ftype get(ftype x) {
-    point query = {x, 1};
-    auto it = lower_bound(vecs.begin(), vecs.end(), query,
-        [](point a, point b) {
-            return cross(a, b) > 0;
+    ftype get(ftype x) {
+        if (hull.empty()) return is_min ? (ftype)1e18 : (ftype)-1e18;
+        point q = {x,1};
+        int lo = 0, hi = (int)hull.size() - 1;
+        while (lo < hi) {
+            int mid = (lo + hi) >> 1;
+            ftype v1 = dot(q, hull[mid]);
+            ftype v2 = dot(q, hull[mid+1]);
+            if (v1 <= v2) lo = mid + 1;
+            else hi = mid;
         }
-    );
-    size_t idx = it - vecs.begin();
-    return dot(query, hull[idx]);
-}
+        ftype res = dot(q, hull[lo]);
+        return is_min ? -res : res;
+    }
 
-// Query maximum at x: O(1) amortized
-// Requires that x queries follow the same monotonic direction as slope insertion.
-ftype get_mono(ftype x) {
-    // Advance or retreat pointer based on hull size
-    while (mono_ptr + 1 < hull.size() &&
-           dot(point(x,1), hull[mono_ptr]) <= dot(point(x,1), hull[mono_ptr+1])) {
-        mono_ptr++;
+    ftype get_mono(ftype x) {
+       if (hull.empty()) return is_min ? (ftype)1e18 : (ftype)-1e18;
+        while (mono_ptr + 1 < hull.size() &&
+               dot({x,1}, hull[mono_ptr]) <= dot({x,1}, hull[mono_ptr+1])) mono_ptr++;
+        while (mono_ptr > 0 &&
+               dot({x,1}, hull[mono_ptr]) <= dot({x,1}, hull[mono_ptr-1])) mono_ptr--;
+        ftype res = dot({x,1}, hull[mono_ptr]);
+        return is_min ? -res : res;
     }
-    while (mono_ptr > 0 &&
-           dot(point(x,1), hull[mono_ptr]) <= dot(point(x,1), hull[mono_ptr-1])) {
-        mono_ptr--;
+
+    void clear() {
+        hull.clear(); vecs.clear(); mono_ptr = 0;
     }
-    return dot(point(x,1), hull[mono_ptr]);
-}
+};
