@@ -1,73 +1,37 @@
-const int N = 10001;
-int dp[N][2], it = 1, L = 1, R = 0, sum = 0;
-char a[N];
-int freq[26];
- 
-void addR(int i) {
-    for (int j = a[i] - 'a' + 1; j < 26; ++j) {
-        sum += freq[j];
+auto add = [&](int x , bool is_front) {
+        if (!is_front) {
+        }else {
+        }
+    };
+    auto remove = [&](int x , bool is_front) {
+        if (!is_front) {
+        }else {
+        }
+    };
+    int cur_l = 0, cur_r = -1;
+    auto C = [&](int l, int r) {
+        while (cur_l > l) add(a[--cur_l] , 1);
+        while (cur_r < r) add(a[++cur_r] , 0);
+        while (cur_l < l) remove(a[cur_l++] , 1);
+        while (cur_r > r) remove(a[cur_r--] , 0);
+        // return inv;
+    };
+
+    vector<ll> dp(n , 1e18), ndp(n , 1e18);
+    for (int i = 0; i < n; i++) dp[i] = C(0, i);
+    function<void(int, int, int, int)> go = [&](int l, int r, ll optl, ll optr) {
+        if (l > r) return;
+        ll mid = (l + r) / 2, opt = optl, mx = 1e18;
+        for (ll i = optl; i <= min(mid, optr); i++) {
+            ll cur = (i ? dp[i - 1] : 0) + C(i, mid);
+            // maximize / minimize
+            if (cur < mx) mx = cur, opt = i;
+        }
+        ndp[mid] = mx;
+        go(l, mid - 1, optl, opt);
+        go(mid + 1, r, opt, optr);
+    };
+    for (int i = 0; i < k - 1; i++) {
+        go(0, n - 1, 0, n - 1);
+        swap(dp, ndp);
     }
-    freq[a[i] - 'a']++;
-}
-void addL(int i) {
-    for (int j = a[i] - 'a' - 1; j >= 0; --j) {
-        sum += freq[j];
-    }
-    freq[a[i] - 'a']++;
-}
- 
-void remL(int i) {
-    for (int j = a[i] - 'a' - 1; j >= 0; --j) {
-        sum -= freq[j];
-    }
-    freq[a[i] - 'a']--;
-}
- 
-void remR(int i) {
-    for (int j = a[i] - 'a' + 1; j < 26; ++j) {
-        sum -= freq[j];
-    }
-    freq[a[i] - 'a']--;
-}
- 
- 
-void move(int l, int r) {
-    while(R < r) addR(++R);
-    while(L > l) addL(--L);
-    while(R > r) remR(R--);
-    while(L < l) remL(L++);
-}
- 
-void go(int l, int r, int lx, int rx) {
-    if(l > r) return;
- 
-    int m = (l + r) / 2, opt = 1;
-    for(int i = lx; i <= min(rx, m); ++i) {
-        move(i, m);
-        int curr = dp[i - 1][it ^ 1] + sum;
- 
-        if(curr < dp[m][it])
-            dp[m][it] = curr, opt = i;
-    }
- 
-    go(l, m - 1, lx, opt);
-    go(m + 1, r, opt, rx);
-}
- 
-void solve(int tc) {
-    string s; cin >> s;
-    int n = s.length(), k; cin >> k;
-    for(int i = 1; i <= n; ++i) a[i] = s[i - 1];
- 
-    // base case
-    memset(dp, 0x3f3f3f3f, sizeof dp);
-    dp[0][0] = 0;
-    it = 1;
- 
-    // calculate
-    for(int i = 1; i <= k; ++i, it ^= 1)
-        go(1, n, 1, n);
- 
- 
-    cout << dp[n][k & 1];
-}
