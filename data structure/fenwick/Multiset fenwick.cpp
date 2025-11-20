@@ -1,68 +1,36 @@
-// you can't insert zeros and you can't insert negative make shift or compression
-
-struct Bit{
-    int N=1<<20;
-    vector<int>tree;
-    void init(){
-        tree.resize(this->N);
+struct Bit {
+    int N = 1 << 20;
+    vector<int> tree;
+    void init() { tree.assign(N + 1, 0); }
+    void add(int i, int v) { for (i++; i <= N; i += i & -i) tree[i] += v; }
+    int get(int i) {
+        int s = 0;
+        for (i = min(i + 1, N); i > 0; i -= i & -i) s += tree[i];
+        return s;
     }
-    void add(int pos,int value){
-        for(int i=pos+1;i<=N;i+=i&-i)tree[i-1]+=value;
-    }
-    int get(int pos) {
-        int sum = 0;
-        for (int i = pos + 1; i; i -= i & -i)sum += tree[i - 1];
-        return sum;
-    }
-    int find(int t){
-        int st=0;
-        for(int sz=N>>1;sz;sz>>=1){
-            if(tree[st+sz-1]<t){
-                t-=tree[(st+=sz)-1];
+    int find(int k) {
+        int pos = 0;
+        for (int i = 1 << 19; i; i >>= 1) {
+            if (pos + i <= N && tree[pos + i] < k) {
+                pos += i;
+                k -= tree[pos];
             }
         }
-        return st;
+        return pos;
     }
 };
-struct MultiSet{
+ 
+struct MultiSet {
     Bit bit;
-    MultiSet(){
-        bit.init();
-        bit.add(0,-1);
-    }
-    void insert(int value){
-        bit.add(value,1);
-    }
-    void erase(int value){
-        bit.add(value,-1);
-    }
-    int count(int value){
-        return bit.get(value)-bit.get(value-1);
-    }
-    int size(){
-        return bit.get(bit.N-1)+1;
-    }
-    int at(int index){
-        return bit.find(index);//return the value which at index (index)
-    }
-    int order_of_key(int key){
-        if(key == 0)assert(false);
-        assert(key < bit.N);
-        return lessThanMe(key); // bit.get(key - 1);
-    }
-    int largerThanMe(int val) {
-        return size() - bit.get(val);
-    }
-
-    int largerThanOrEqualMe(int val) {
-        return size() - bit.get(val - 1);
-    }
-
-    int lessThanMe(int val) {
-        return bit.get(val - 1);
-    }
-
-    int lessThanOrEqualMe(int val) {
-        return bit.get(val);
-    }
+    MultiSet() { bit.init(); }
+    void insert(int v) { bit.add(v, 1); }
+    void erase(int v) { if (count(v)) bit.add(v, -1); }
+    int count(int v) { return bit.get(v) - bit.get(v - 1); }
+    int size() { return bit.get(bit.N - 1); }
+    int at(int k) { return bit.find(k + 1); }
+    int order_of_key(int v) { return bit.get(v - 1); }
+    int largerThanMe(int v) { return size() - bit.get(v); }
+    int largerThanOrEqualMe(int v) { return size() - bit.get(v - 1); }
+    int lessThanMe(int v) { return bit.get(v - 1); }
+    int lessThanOrEqualMe(int v) { return bit.get(v); }
 };
