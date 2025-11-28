@@ -85,7 +85,8 @@ void sa_extend(char c, int pos) {
     }
     last = cur;
 }
-
+//    int sh = st[st[i].link].len + 1;
+//    int lg = st[i].len;
 void build(const string &s) {
     sa_init();
     for (int i = 0; i < (int)s.size(); i++) {

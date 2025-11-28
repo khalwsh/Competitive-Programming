@@ -1,6 +1,7 @@
 const int N = 2e5 + 10;
-vector<vector<int>> adj , dag , comps;
-int comp[N] , inStack[N] , lowLink[N] , dfn[N] , deg[N];
+vector<int> adj[N];
+vector<vector<int>> dag , comps;
+int comp[N] , inStack[N] , lowLink[N] , dfn[N] , deg[N] , n;
 stack<int> st;
 int ndfn;
 void tarjan(int u){
@@ -28,7 +29,7 @@ void tarjan(int u){
 }
 void genDag(){
     dag.resize(comps.size());
-    for(int u = 0 ; u < adj.size() ; u++){
+    for(int u = 0 ; u < n ; u++){
         for(auto &v :adj[u]){
             if(comp[u] != comp[v]){
                 dag[comp[u]].emplace_back(comp[v]);
@@ -37,7 +38,7 @@ void genDag(){
         }
     }
 }
-void SCC(int n){
+void SCC(){
     ndfn = 0;
     comps.clear();
     for(int i=0;i<n;i++){
@@ -48,4 +49,3 @@ void SCC(int n){
         if(dfn[i] == -1) tarjan(i);
     genDag();
 }
-
