@@ -1,39 +1,35 @@
 const int N = 2e5 + 10;
 int n, m;
-multiset<int> adj[N];
-int deg[N];
+set<int> adj[N];
+int degree[N];
 vector<int> tour;
-
-void dfs(int u) {
-    while (!adj[u].empty()) {
-        auto it = adj[u].begin();
-        int v = *it;
-        adj[u].erase(it);
-        if (u != v) {
-            auto it_rev = adj[v].find(u);
-            if (it_rev != adj[v].end()) {
-                adj[v].erase(it_rev);
-            }
+ 
+void dfs(int node) {
+    while (!adj[node].empty()) {
+        auto it = prev(adj[node].end());
+        int x = *it;
+        adj[node].erase(it);
+        if (adj[x].erase(node)) {
+            dfs(x);
         }
-        dfs(v);
     }
-    tour.emplace_back(u);
+    tour.emplace_back(node);
 }
-
+ 
 bool check() {
     for (int i = 0; i < n; ++i) {
-        if (deg[i] & 1) return false;
+        if (degree[i] & 1) return false;
     }
     return true;
 }
-
+ 
 bool isConnected() {
     int start = -1;
     for (int i = 0; i < n; ++i) {
-        if (deg[i] > 0) { start = i; break; }
+        if (degree[i] > 0) { start = i; break; }
     }
     if (start == -1) return true;
-
+ 
     vector<char> vis(n, 0);
     stack<int> st;
     st.push(start);
@@ -47,25 +43,25 @@ bool isConnected() {
             }
         }
     }
-
+ 
     for (int i = 0; i < n; ++i) {
-        if (deg[i] > 0 && !vis[i]) return false;
+        if (degree[i] > 0 && !vis[i]) return false;
     }
     return true;
 }
-
+ 
 bool get() {
     if (!check()) return false;
     if (!isConnected()) return false;
-
+ 
     int start = -1;
     for (int i = 0; i < n; ++i) {
-        if (deg[i] > 0) { start = i; break; }
+        if (degree[i] > 0) { start = i; break; }
     }
+    if (start != 0) return false;
     if (start == -1) {
         return (m == 0);
     }
-
     tour.clear();
     dfs(start);
     reverse(tour.begin(), tour.end());

@@ -1,3 +1,9 @@
+// O(V^2 E) and in unit graph works in O(E sqrt(v))
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
 struct Dinic {
     const long long flow_inf = 1e18;
     vector<FlowEdge> edges;
@@ -6,13 +12,13 @@ struct Dinic {
     int s, t;
     vector<int> level, ptr;
     queue<int> q;
-
+ 
     Dinic(int n, int s, int t) : n(n), s(s), t(t) {
         adj.resize(n);
         level.resize(n);
         ptr.resize(n);
     }
-
+ 
     void add_edge(int v, int u, long long cap) {
         edges.emplace_back(v, u, cap);
         edges.emplace_back(u, v, 0);
@@ -20,7 +26,7 @@ struct Dinic {
         adj[u].push_back(m + 1);
         m += 2;
     }
-
+ 
     bool bfs() {
         while (!q.empty()) {
             int v = q.front();
@@ -36,7 +42,7 @@ struct Dinic {
         }
         return level[t] != -1;
     }
-
+ 
     long long dfs(int v, long long pushed) {
         if (pushed == 0)
             return 0;
@@ -56,7 +62,7 @@ struct Dinic {
         }
         return 0;
     }
-
+ 
     long long flow() {
         long long f = 0;
         while (true) {
@@ -75,7 +81,7 @@ struct Dinic {
     vector<pair<vector<int>, ll>> extract_paths() {
         vector<pair<vector<int>, ll>> paths;
         vector<int> parent_edge(n);
-
+ 
         function<ll(int, vector<vector<pair<int,int>>>&)> dfs2 =
         [&](int v, vector<vector<pair<int,int>>>& g) -> ll {
             if (v == t) return LLONG_MAX;
@@ -92,7 +98,7 @@ struct Dinic {
             }
             return 0LL;
         };
-
+ 
         while (true) {
             vector<vector<pair<int,int>>> g(n);
             for (int id = 0; id < m; id += 2) {
@@ -100,12 +106,12 @@ struct Dinic {
                     g[edges[id].v].emplace_back(edges[id].u, id);
                 }
             }
-
+ 
             fill(parent_edge.begin(), parent_edge.end(), -1);
             parent_edge[s] = -2;
             ll pushed = dfs2(s, g);
             if (pushed == 0) break;
-
+ 
             vector<int> path;
             int v = t;
             while (v != s) {
