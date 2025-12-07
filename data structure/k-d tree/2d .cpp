@@ -1,83 +1,137 @@
-template <class T> int sgn(T x) { return (x > 0) - (x < 0); }
+// --- KD-TREE TEMPLATE START ---
+// remember to shuffle and unique the points you build on
+struct P {
+    ll x, y;
+    int id;
 
-template<class T>
-struct Point {
-    typedef Point P;
-    T x, y;
-    explicit Point(T x=0, T y=0) : x(x), y(y) {}
-    bool operator<(P p) const { return tie(x,y) < tie(p.x,p.y); }
-    bool operator==(P p) const { return tie(x,y)==tie(p.x,p.y); }
-    P operator+(P p) const { return P(x+p.x, y+p.y); }
-    P operator-(P p) const { return P(x-p.x, y-p.y); }
-    P operator*(T d) const { return P(x*d, y*d); }
-    P operator/(T d) const { return P(x/d, y/d); }
-    T dot(P p) const { return x*p.x + y*p.y; }
-    T cross(P p) const { return x*p.y - y*p.x; }
-    T cross(P a, P b) const { return (a-*this).cross(b-*this); }
-    T dist2() const { return abs(x) + abs(y); }
-    double dist() const { return sqrt((double)dist2()); }
-    double angle() const { return atan2(y, x); }
-    P unit() const { return *this/dist(); }
-    P perp() const { return P(-y, x); }
-    P normal() const { return perp().unit(); }
-    P rotate(double a) const {
-        return P(x*cos(a)-y*sin(a),x*sin(a)+y*cos(a)); }
-    friend ostream& operator<<(ostream& os, P p) {
-        return os << "(" << p.x << "," << p.y << ")"; }
+    ll dist(const P& b) const {
+        // 1. MANHATTAN (Current)
+        return abs(x - b.x) + abs(y - b.y);
+
+        // 2. EUCLIDEAN SQUARED (Uncomment for Euclidean)
+        // return (x - b.x)*(x - b.x) + (y - b.y)*(y - b.y);
+    }
+    bool operator<(P &z) {
+        return x < z.x || (x == z.x && y < z.y);
+    }
+    bool operator==(P &z) {
+        return x == z.x && y == z.y;
+    }
+};
+const int INF = 1e9;
+struct Node {
+    P p;
+    int l = -1;
+    int r = -1;
+
+    ll x0 = INF, x1 = -INF, y0 = INF, y1 = -INF;
+
+    Node() {}
+    Node(P pt) : p(pt) {
+        x0 = x1 = pt.x;
+        y0 = y1 = pt.y;
+    }
+
+    ll boxDist(const P& q) const {
+        ll X = max(x0, min(x1, q.x));
+        ll Y = max(y0, min(y1, q.y));
+
+        // 1. MANHATTAN (Current)
+        return abs(q.x - X) + abs(q.y - Y);
+
+        // 2. EUCLIDEAN SQUARED (Uncomment for Euclidean)
+        // return (q.x - X)*(q.x - X) + (q.y - Y)*(q.y - Y);
+    }
 };
 
-typedef long long ll;  // Added missing typedef
-typedef Point<ll> P;
-const ll INF = numeric_limits<ll>::max();
-
+// Global comparators for nth_element
 bool on_x(const P& a, const P& b) { return a.x < b.x; }
 bool on_y(const P& a, const P& b) { return a.y < b.y; }
 
-struct Node {
-    P pt;
-    ll x0 = INF, x1 = -INF, y0 = INF, y1 = -INF;
-    Node *first = 0, *second = 0;
-    
-    ll distance(const P& p) { 
-        ll x = (p.x < x0 ? x0 : p.x > x1 ? x1 : p.x);
-        ll y = (p.y < y0 ? y0 : p.y > y1 ? y1 : p.y);
-        return (P(x,y) - p).dist2();
-    }
-    
-    Node(vector<P>&& vp) : pt(vp[0]) {
-        for (P p : vp) {
-            x0 = min(x0, p.x); x1 = max(x1, p.x);
-            y0 = min(y0, p.y); y1 = max(y1, p.y);
-        }
-        if (vp.size() > 1) {
-            sort(vp.begin(), vp.end(), x1 - x0 >= y1 - y0 ? on_x : on_y);
-            int half = vp.size()/2;
-            first = new Node({vp.begin(), vp.begin() + half});
-            second = new Node({vp.begin() + half, vp.end()});
-        }
-    }
-};
-
 struct KDTree {
-    Node* root;
-    
-    KDTree(const vector<P>& vp) : root(new Node({vp.begin(), vp.end()})) {}
-    
-    pair<ll, P> search(Node *node, const P& p) {
-        if (!node->first) {
-            return make_pair((p - node->pt).dist2(), node->pt);
+    vector<Node> pool;
+    int root = -1;
+    ll min_d;
+    P best_p;
+    int q_id;
+
+    int build(vector<P> &pts, int L, int R) {
+        if (L >= R) return -1;
+
+        // 1. Calculate Bounding Box of current points to decide split axis
+        ll min_x = INF, max_x = -INF, min_y = INF, max_y = -INF;
+        for(int i=L; i<R; ++i) {
+            if(pts[i].x < min_x) min_x = pts[i].x;
+            if(pts[i].x > max_x) max_x = pts[i].x;
+            if(pts[i].y < min_y) min_y = pts[i].y;
+            if(pts[i].y > max_y) max_y = pts[i].y;
         }
-        Node *f = node->first, *s = node->second;
-        ll bfirst = f->distance(p), bsec = s->distance(p);
-        if (bfirst > bsec) swap(bsec, bfirst), swap(f, s);
-        auto best = search(f, p);
-        if (bsec < best.first)
-            best = min(best, search(s, p));
-        return best;
+
+        // 2. Adaptive Split: Split on the widest dimension
+        // This creates square-like bounding boxes which are better for pruning
+        bool divX = (ll)(max_x - min_x) >= (ll)(max_y - min_y);
+
+        int mid = (L + R) / 2;
+        nth_element(pts.begin() + L, pts.begin() + mid, pts.begin() + R, divX ? on_x : on_y);
+
+        int idx = pool.size();
+        pool.push_back(Node(pts[mid]));
+
+        // Set the bounding box exactly to what we computed
+        pool[idx].x0 = min_x; pool[idx].x1 = max_x;
+        pool[idx].y0 = min_y; pool[idx].y1 = max_y;
+
+        // 3. Recurse
+        pool[idx].l = build(pts, L, mid);
+        pool[idx].r = build(pts, mid + 1, R);
+
+        return idx;
     }
-    
-    pair<ll, P> nearest(const P& p) {
-        return search(root, p);
+
+    void search(int node_idx, const P& q) {
+        if (node_idx == -1 || pool[node_idx].boxDist(q) >= min_d) return;
+
+        ll d = pool[node_idx].p.dist(q);
+
+        // Check condition: strictly better dist AND not the point itself
+        if (d < min_d && pool[node_idx].p.id != q_id) {
+            min_d = d;
+            best_p = pool[node_idx].p;
+        }
+
+        if (min_d == 0) return;
+
+        int L = pool[node_idx].l;
+        int R = pool[node_idx].r;
+
+        ll dL = (L != -1) ? pool[L].boxDist(q) : INF;
+        ll dR = (R != -1) ? pool[R].boxDist(q) : INF;
+
+        // Visit closer box first
+        if (dL < dR) { search(L, q); search(R, q); }
+        else         { search(R, q); search(L, q); }
+    }
+
+    KDTree(vector<P>& pts) {
+        pool.reserve(pts.size());
+        root = build(pts, 0, pts.size());
+    }
+
+    // Returns {distance, Point}
+    // Usage: nearest(q) -> any neighbor. nearest(q, q.id) -> neighbor != q
+    pair<ll, P> nearest(P q, int ignore_id = -1) {
+        min_d = INF;
+        q_id = ignore_id;
+        best_p = P();
+        search(root, q);
+        return {min_d, best_p};
+    }
+    ll find_closest_pair(const vector<P>& pts) {
+        min_d = INF;
+        for (const auto& p : pts) {
+            q_id = p.id; // Ignore self
+            search(root, p);
+        }
+        return min_d;
     }
 };
-

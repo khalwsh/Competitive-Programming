@@ -1,3 +1,4 @@
+// 1 base
 struct SegmentTree {
     int N;
     vector<int> lo, hi;

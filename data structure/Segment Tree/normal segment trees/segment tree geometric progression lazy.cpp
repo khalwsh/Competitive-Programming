@@ -9,10 +9,11 @@ ll power(ll base, ll exp) {
     }
     return result;
 }
+// add v in range [L , R] will add a[L] + v , a[L + 1] + v * k , a[L + 2] + v * k ^ 2 ...
 class SegmentTree {
 private:
     int n;
-    vector<ll> tree, lazy_a, lazy_r; 
+    vector<ll> tree, lazy_a, lazy_r;
     ll K;
 
     ll geometric_sum(ll a, ll r, ll n) {
@@ -93,5 +94,5 @@ public:
     ll query(int left, int right) {
         return query_range(1, 0, n - 1, left, right);
     }
-    
+
 };

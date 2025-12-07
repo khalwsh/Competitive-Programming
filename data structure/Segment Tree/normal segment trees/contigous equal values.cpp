@@ -1,70 +1,69 @@
-struct Node {
-    int left = -1, right = -1;
-    int len = 0;
-    int pref[2]{0, 0}, suf[2]{0, 0}, mx[2]{0, 0};
- 
-    Node() = default;
- 
-    Node(int v) {
-        left = right = v;
-        len = 1;
-        pref[v] = suf[v] = mx[v] = 1;
-        pref[v ^ 1] = suf[v ^ 1] = mx[v ^ 1] = 0;
-    }
+struct Node{
+	int best , len;
+	int pref_t , pref_sz;
+	int suf_t , suf_sz;
+	Node(){
+		best = 0; len = 0;
+		pref_t = suf_t = -1;
+		pref_sz = suf_sz = 0;
+	}
+	Node(int x){
+		best = 1 , len = 1;
+		pref_t = suf_t = x;
+		pref_sz = suf_sz = 1;
+	}
 };
- 
+Node operator+(const Node &a , const Node &b){
+	if(a.suf_t == -1) return b;
+	if(b.pref_t == -1) return a;
+
+	Node res;
+	res.best = max(a.best , b.best);
+	res.len = a.len + b.len;
+	res.pref_t = a.pref_t;
+	res.suf_t = b.suf_t;
+
+	res.pref_sz = a.pref_sz + ((a.pref_sz == a.len && a.suf_t == b.pref_t) ? b.pref_sz : 0);
+	res.suf_sz = b.suf_sz + ((b.suf_sz == b.len && b.pref_t == a.suf_t) ? a.suf_sz : 0);
+
+	if(a.suf_t == b.pref_t) res.best = max(res.best , a.suf_sz + b.pref_sz);
+
+	return res;
+}
 struct SegmentTree {
-    int n = 0;
-    vector<Node> tree;
- 
-    void init(int n_) {
-        n = n_;
-        tree.assign(4 * n, Node());
-    }
- 
-    static Node mergeNode(const Node &A, const Node &B) {
-        if (A.len == 0) return B;
-        if (B.len == 0) return A;
- 
-        Node res;
-        res.left = A.left;
-        res.right = B.right;
-        res.len = A.len + B.len;
- 
-        for (int val = 0; val <= 1; ++val) {
-            res.pref[val] = A.pref[val];
-            if (A.pref[val] == A.len) res.pref[val] = A.len + B.pref[val];
- 
-            res.suf[val] = B.suf[val];
-            if (B.suf[val] == B.len) res.suf[val] = B.len + A.suf[val];
- 
-            res.mx[val] = max(A.mx[val], B.mx[val]);
- 
-            if (A.right == val && B.left == val) {
-                res.mx[val] = max(res.mx[val], A.suf[val] + B.pref[val]);
-            }
-        }
- 
-        return res;
-    }
- 
-    void upd(int node, int nl, int nr, int idx, int nw) {
-        if (nl == nr) {
-            tree[node] = Node(nw);
-            return;
-        }
-        int mid = nl + (nr - nl) / 2;
-        if (idx <= mid) upd(2 * node + 1, nl, mid, idx, nw);
-        else upd(2 * node + 2, mid + 1, nr, idx, nw);
-        tree[node] = mergeNode(tree[2 * node + 1], tree[2 * node + 2]);
-    }
- 
-    Node query(int node, int nl, int nr, int l, int r) {
-        if (r < nl || nr < l) return Node();
-        if (l <= nl && nr <= r) return tree[node];
-        int mid = nl + (nr - nl) / 2;
-        Node leftNode = query(2 * node + 1, nl, mid, l, r);
-        Node rightNode = query(2 * node + 2, mid + 1, nr, l, r);
-        return mergeNode(leftNode, rightNode);
-    }
+	vector<Node> tree;
+	int n;
+	SegmentTree(int n_) {
+		n = n_;
+		if (n > 0) tree.assign(4 * n, Node());
+		else tree.clear();
+	}
+	void update_point(int idx, int val) {
+		if (idx < 0 || idx >= n) return; 
+		update_point(0, 0, n - 1, idx, val);
+	}
+	void update_point(int x, int l, int r, int idx, int val) {
+		if (l == r) {
+			tree[x] = Node(val);
+			return;
+		}
+		int mid = (l + r) >> 1;
+		if (idx <= mid) update_point(2 * x + 1, l, mid, idx, val);
+		else update_point(2 * x + 2, mid + 1, r, idx, val);
+		tree[x] = tree[2 * x + 1] + tree[2 * x + 2];
+	}
+	Node query(int ql, int qr) {
+		if (ql > qr) return Node();
+		ql = max(0, ql);
+		qr = min(n - 1, qr);
+		if (ql > qr) return Node();
+		return query(0, 0, n - 1, ql, qr);
+	}
+
+	Node query(int x, int l, int r, int ql, int qr) {
+		if (ql <= l && r <= qr) return tree[x];
+		if (r < ql || l > qr) return Node(); 
+		int mid = (l + r) >> 1;
+		return query(2 * x + 1, l, mid, ql, qr) + query(2 * x + 2, mid + 1, r, ql, qr);
+	}
 };

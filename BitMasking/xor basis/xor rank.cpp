@@ -13,40 +13,22 @@ struct Basis {
             msk ^= basis[i];
         }
     }
-    int k_th(int k){
-        /*
-            Finding the k-th smallest xor_sum of all different subsequence xor_sum
-        */
-        int low = 1 << comp_sz;
-        int x = 0;
-        for(int i = BITs - 1; i >= 0; --i){
-            if(!basis[i]) continue;
-            low /= 2;
-            if( (!(x >> i & 1) && low < k) || ((x >> i & 1) && low >= k) ){
-                x ^= basis[i];
-            }
-            if(low < k) k -= low;
-        }
-        return x;
-    }
-    /*
-    Return the number of distinct subsequence xor_sums that are < x.
-    */
-    ll rank_xor(int x){
+    // Count distinct XORs < x
+    ll count_le(ll x){
         if(x < 0) return 0;
-        ll ans = 0, cnt = 1LL << comp_sz, m = 0;
-        for(int i = BITs-1; i >= 0; --i){
+        ll ret = 0, cnt = 1 << comp_sz, m = 0;
+        for(int i = BITs - 1;i >= 0;--i){
             if(basis[i]){
-                if((x>>i)&1){
-                    ans += cnt>>1;
-                    if(!((m>>i)&1)) m ^= basis[i];
-                } else if((m>>i)&1) m ^= basis[i];
-                cnt >>= 1;
+                ll half = cnt >> 1;
+                if(x>>i&1){ ret += half; if(!(m>>i&1)) m ^= basis[i]; }
+                else      { if( m>>i&1) m ^= basis[i]; }
+                cnt = half;
             } else {
-                if(((x>>i)&1) != ((m>>i)&1))
-                    return ((x>>i)&1 ? ans + cnt : ans);
+                if(((x^m)>>i)&1) return (x>>i&1 ? ret+cnt : ret);
             }
         }
-        return ans;
+        return ret;
     }
+
+    ll count_leq(int X){ return count_le(X+1); }
 };

@@ -8,6 +8,8 @@ vector<int> ArtPoints;
 int p[N];
 int tin[N], tout[N];
 
+vector<vector<pair<int,int>>> artIntervals;
+
 void Tarjan(int node, int parent){
     p[node] = parent;
     dfn[node] = LowLink[node] = ndfn++;
@@ -40,15 +42,27 @@ void Art(int n){
         tin[i] = tout[i] = 0;
         p[i] = -1;
     }
+    ArtPoints.clear();
     for (int i = 0; i < n; i++) {
         if (dfn[i] == -1) Tarjan(i, -1), ID++;
     }
     for (int i = 0; i < n; i++) {
         if (IsArtPoints[i]) ArtPoints.emplace_back(i);
     }
+    artIntervals.assign(n, {});
+    for (int c : ArtPoints) {
+        vector<pair<int,int>> intervals;
+        for (int child : adj[c]) {
+            if (p[child] != c) continue;
+            if (LowLink[child] >= dfn[c]) {
+                intervals.emplace_back(tin[child], tout[child]);
+            }
+        }
+        sort(intervals.begin(), intervals.end());
+        artIntervals[c] = std::move(intervals);
+    }
 }
 
-// calculate art points and send 0 base
 bool is_bottle_neck(int a , int b , int c) {
     if (a == c || b == c || comp[a] != comp[b]) {
         return true;
@@ -56,16 +70,18 @@ bool is_bottle_neck(int a , int b , int c) {
     if (!IsArtPoints[c]) {
         return false;
     }
-    int ida = -1, idb = -1;
-    int idx = 0;
-    for (auto child : adj[c]) {
-        if (p[child] != c) continue;
-        if (LowLink[child] >= dfn[c]) {
-            if (tin[child] <= tin[a] && tin[a] <= tout[child]) ida = idx;
-            if (tin[child] <= tin[b] && tin[b] <= tout[child]) idb = idx;
-            idx++;
-        }
-    }
-    if (ida == -1 && idb == -1 || ida != -1 && idb != -1 && ida == idb) return false;
+    auto &v = artIntervals[c];
+    auto find_idx = [&](int x)->int {
+        if (v.empty()) return -1;
+        int t = tin[x];
+        auto it = upper_bound(v.begin(), v.end(), make_pair(t, INT_MAX));
+        if (it == v.begin()) return -1;
+        --it;
+        if (it->first <= t && t <= it->second) return int(it - v.begin());
+        return -1;
+    };
+
+    int ida = find_idx(a), idb = find_idx(b);
+    if ((ida == -1 && idb == -1) || (ida != -1 && idb != -1 && ida == idb)) return false;
     else return true;
 }
