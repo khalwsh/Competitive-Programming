@@ -2,6 +2,7 @@ const int N = 8001 , K = 801;
 ll dp[2][N]; // remember base case
 ll a[N];
 int n , k;
+// dp[i][j] = min(dp[i - 1][k] + cost(k + 1 , j)) for each 1 <= k < j
 void dnc(int i , int L , int R , int opt_L , int opt_R) {
     if (L > R) return;
     int mid = L + (R - L) / 2;
