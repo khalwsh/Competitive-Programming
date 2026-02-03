@@ -65,7 +65,7 @@ void propagate() {
         // Example: v[link].value += v[x].value;
     }
 }
-
+// count not contained , contained = 26 ^ n - contained
 // Builds the transition matrix of the automaton
 // m[i][j] = 1 if there's a valid transition from node i to node j 
 // using some character, and node j does NOT lead to any forbidden string
