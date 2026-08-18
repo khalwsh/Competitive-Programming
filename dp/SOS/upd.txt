@@ -1,0 +1,51 @@
+const int MASK = 1 << 9;
+ 
+struct submask{
+    int dp[MASK][MASK];
+ 
+    void update (int x, int delta) {
+        int high = x >> 9;
+        int low = x & (MASK - 1);
+        // Iterate over all supersets of `low` using (m + 1) | low
+        for (int m = low; m < MASK; m = (m + 1) | low) {
+            dp[high][m] += delta;
+        }
+    }
+ 
+    int query(int x) {
+        int high = x >> 9;
+        int low = x & (MASK - 1);
+        int res = 0;
+        // Iterate over all submasks of `high`
+        for (int m = high; ; m = (m - 1) & high) {
+            res += dp[m][low];
+            if (m == 0) break;
+        }
+        return res;
+    }
+};
+ 
+struct supermask{
+    int dp[MASK][MASK];
+ 
+    void update(int x, int delta) {
+        int high = x >> 9;
+        int low = x & (MASK - 1);
+        // Iterate over all subsets of `low`
+        for (int m = low; ; m = (m - 1) & low) {
+            dp[high][m] += delta;
+            if (m == 0) break;
+        }
+    }
+ 
+    int query(int x) {
+        int high = x >> 9;
+        int low = x & (MASK - 1);
+        int res = 0;
+        // Iterate over all supersets of `high`
+        for (int m = high; m < MASK; m = (m + 1) | high) {
+            res += dp[m][low];
+        }
+        return res;
+    }
+};

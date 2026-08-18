@@ -10,6 +10,8 @@ void dfs(int u , int p = -1) {
     for (int v : adj[u]) {
         if (!vis[v]) {
             // tree edge
+
+	    // dfs here
         }
         else {
             if (tin[v] < tin[u] && tout[v] == 0){
